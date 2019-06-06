@@ -5,40 +5,41 @@ import android.support.v7.app.AppCompatActivity;
 
 public class SwipeBackActivity extends AppCompatActivity {
 
-    protected SwipeBack mSwipeBack;
+    protected SwipeBackHelper mSwipeBackHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSwipeBack = SwipeBack.inject(this);
-        mSwipeBack.setTakeOverActivityEnterExitAnim(supportTakeOverActivityEnterExitAnim());
-        mSwipeBack.setSwipeBackEnable(supportSwipeBack());
-        mSwipeBack.setForceEdgeEnable(supportForceEdge());
-        mSwipeBack.setSwipeDirection(supportSwipeDirection());
-        mSwipeBack.getSwipeBackLayout().setShadowStartColor(0);
+        mSwipeBackHelper = SwipeBackHelper.inject(this);
+        mSwipeBackHelper.setTakeOverActivityEnterExitAnim(supportTakeOverActivityEnterExitAnim());
+        mSwipeBackHelper.setSwipeBackEnable(supportSwipeBack());
+        mSwipeBackHelper.setSwipeBackOnlyEdge(supportOnlyEdge());
+        mSwipeBackHelper.setSwipeBackForceEdge(supportForceEdge());
+        mSwipeBackHelper.setSwipeDirection(supportSwipeDirection());
+        mSwipeBackHelper.getSwipeBackLayout().setShadowStartColor(0);
     }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-        mSwipeBack.onPostCreate();
+        mSwipeBackHelper.onPostCreate();
     }
 
     @Override
     public void onEnterAnimationComplete() {
         super.onEnterAnimationComplete();
-        mSwipeBack.onEnterAnimationComplete();
+        mSwipeBackHelper.onEnterAnimationComplete();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mSwipeBack.onDestroy();
+        mSwipeBackHelper.onDestroy();
     }
 
     @Override
     public void finish() {
-        if (mSwipeBack.finish()) {
+        if (mSwipeBackHelper.finish()) {
             super.finish();
         }
     }
@@ -47,16 +48,20 @@ public class SwipeBackActivity extends AppCompatActivity {
         return true;
     }
 
+    protected boolean supportOnlyEdge() {
+        return false;
+    }
+
     protected boolean supportForceEdge() {
         return true;
     }
 
     protected boolean supportTakeOverActivityEnterExitAnim() {
-        return true;
+        return false;
     }
 
-    @SwipeDirection
+    @SwipeBackDirection
     protected int supportSwipeDirection() {
-        return SwipeDirection.FROM_LEFT;
+        return SwipeBackDirection.FROM_LEFT;
     }
 }

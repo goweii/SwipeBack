@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
+
+    <per.goweii.actionbarex.common.ActionBarCommon
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorPrimary"
+        app:ab_autoImmersion="true"
+        app:ab_titleBarHeight="44dp"
+        app:abc_titleText="@string/app_name"
+        app:abc_titleTextColor="@android:color/white" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="滑动返回动画效果" />
+
+        <RadioGroup
+            android:id="@+id/rg_transformer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rb_parallax"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="视差效果" />
+
+            <RadioButton
+                android:id="@+id/rb_shrink"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="收缩效果" />
+
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="滑动返回动画效果" />
+
+        <RadioGroup
+            android:id="@+id/rg_direction"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rb_left"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LEFT" />
+
+            <RadioButton
+                android:id="@+id/rb_right"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RIGHT" />
+
+            <RadioButton
+                android:id="@+id/rb_top"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TOP" />
+
+            <RadioButton
+                android:id="@+id/rb_bottom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BOTTOM" />
+
+        </RadioGroup>
+
+        <Switch
+            android:id="@+id/sw_enable"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="启用滑动返回" />
+
+        <Switch
+            android:id="@+id/sw_only_edge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="仅边缘可滑动返回" />
+
+        <Switch
+            android:id="@+id/sw_force_edge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="强制边缘可滑动返回" />
+
+    </LinearLayout>
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#f5f5f5">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <HorizontalScrollView
+                android:id="@+id/hsv"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:background="#fff">
+
+                <TextView
+                    android:layout_width="2000dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:text="这是一个HorizontalScrollView"
+                    android:textSize="50dp" />
+
+            </HorizontalScrollView>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="5dp"
+                android:background="#fff" />
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/vp"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="5dp"
+                android:background="#fff" />
+
+            <WebView
+                android:id="@+id/wv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:background="#fff" />
+
+        </LinearLayout>
+
+    </android.support.v4.widget.NestedScrollView>
+
+</LinearLayout>

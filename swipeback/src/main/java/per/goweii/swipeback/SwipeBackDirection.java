@@ -12,9 +12,9 @@ import java.lang.annotation.RetentionPolicy;
  * E-mail: goweii@163.com
  * GitHub: https://github.com/goweii
  */
-@IntDef({SwipeDirection.FROM_LEFT, SwipeDirection.FROM_TOP, SwipeDirection.FROM_RIGHT, SwipeDirection.FROM_BOTTOM})
+@IntDef({SwipeBackDirection.FROM_LEFT, SwipeBackDirection.FROM_TOP, SwipeBackDirection.FROM_RIGHT, SwipeBackDirection.FROM_BOTTOM})
 @Retention(RetentionPolicy.SOURCE)
-public @interface SwipeDirection {
+public @interface SwipeBackDirection {
     int FROM_LEFT = 1 << 0;
     int FROM_RIGHT = 1 << 1;
     int FROM_TOP = 1 << 2;

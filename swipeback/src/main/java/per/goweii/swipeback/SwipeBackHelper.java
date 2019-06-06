@@ -1,25 +1,20 @@
 package per.goweii.swipeback;
 
 import android.app.Activity;
-import android.app.Application;
 import android.view.View;
 
-public class SwipeBack {
+public class SwipeBackHelper {
 
     private Activity mActivity;
     private SwipeBackLayout mSwipeBackLayout;
 
-    public static void init(Application application) {
-        SwipeBackManager.init(application);
-    }
-
-    private SwipeBack(Activity activity) {
+    private SwipeBackHelper(Activity activity) {
         mActivity = activity;
         mSwipeBackLayout = new SwipeBackLayout(mActivity);
     }
 
-    public static SwipeBack inject(Activity activity) {
-        return new SwipeBack(activity);
+    public static SwipeBackHelper inject(Activity activity) {
+        return new SwipeBackHelper(activity);
     }
 
     public void onPostCreate() {
@@ -75,7 +70,7 @@ public class SwipeBack {
         mSwipeBackLayout.setTakeOverActivityEnterExitAnim(enable);
     }
 
-    public boolean isFinishAnimEnable() {
+    public boolean isTakeOverActivityEnterExitAnim() {
         return mSwipeBackLayout.isTakeOverActivityEnterExitAnim();
     }
 
@@ -87,19 +82,27 @@ public class SwipeBack {
         return mSwipeBackLayout.isSwipeBackEnable();
     }
 
-    public void setForceEdgeEnable(boolean enable) {
-        mSwipeBackLayout.setForceEdgeEnable(enable);
+    public void setSwipeBackOnlyEdge(boolean enable) {
+        mSwipeBackLayout.setSwipeBackOnlyEdge(enable);
     }
 
-    public boolean isForceEdgeEnable() {
-        return mSwipeBackLayout.isForceEdgeEnable();
+    public boolean isSwipeBackOnlyEdge() {
+        return mSwipeBackLayout.isSwipeBackOnlyEdge();
     }
 
-    public void setSwipeDirection(@SwipeDirection int direction) {
+    public void setSwipeBackForceEdge(boolean enable) {
+        mSwipeBackLayout.setSwipeBackForceEdge(enable);
+    }
+
+    public boolean isSwipeBackForceEdge() {
+        return mSwipeBackLayout.isSwipeBackForceEdge();
+    }
+
+    public void setSwipeDirection(@SwipeBackDirection int direction) {
         mSwipeBackLayout.setSwipeDirection(direction);
     }
 
-    @SwipeDirection
+    @SwipeBackDirection
     public int getSwipeDirection() {
         return mSwipeBackLayout.getSwipeDirection();
     }

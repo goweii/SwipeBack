@@ -4,7 +4,7 @@ import android.support.annotation.FloatRange;
 import android.view.View;
 
 import per.goweii.swipeback.SwipeBackLayout;
-import per.goweii.swipeback.SwipeDirection;
+import per.goweii.swipeback.SwipeBackDirection;
 
 /**
  * @author CuiZhen
@@ -32,25 +32,25 @@ public class ParallaxSwipeBackTransformer implements SwipeBackLayout.SwipeBackTr
 
     @Override
     public void transform(View currentView, View previousView, float fraction, int swipeDirection) {
-        if (swipeDirection == SwipeDirection.FROM_LEFT) {
+        if (swipeDirection == SwipeBackDirection.FROM_LEFT) {
             if (mMaxTranslation == -1) {
                 mMaxTranslation = previousView.getWidth();
             }
             float translation = (mMaxTranslation * mPercent) * (1 - fraction);
             previousView.setTranslationX(-translation);
-        } else if (swipeDirection == SwipeDirection.FROM_RIGHT) {
+        } else if (swipeDirection == SwipeBackDirection.FROM_RIGHT) {
             if (mMaxTranslation == -1) {
                 mMaxTranslation = previousView.getWidth();
             }
             float translation = mMaxTranslation * mPercent * (1 - fraction);
             previousView.setTranslationX(translation);
-        } else if (swipeDirection == SwipeDirection.FROM_TOP) {
+        } else if (swipeDirection == SwipeBackDirection.FROM_TOP) {
             if (mMaxTranslation == -1) {
                 mMaxTranslation = previousView.getHeight();
             }
             float translation = mMaxTranslation * mPercent * (1 - fraction);
             previousView.setTranslationY(-translation);
-        } else if (swipeDirection == SwipeDirection.FROM_BOTTOM) {
+        } else if (swipeDirection == SwipeBackDirection.FROM_BOTTOM) {
             if (mMaxTranslation == -1) {
                 mMaxTranslation = previousView.getHeight();
             }
