@@ -45,15 +45,15 @@ public abstract class BaseSwipeBackActivity extends SwipeBackActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId == R.id.rb_left) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeDirection(SwipeBackDirection.FROM_LEFT);
+                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_LEFT);
                 } else if (checkedId == R.id.rb_right) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeDirection(SwipeBackDirection.FROM_RIGHT);
+                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_RIGHT);
                 } else if (checkedId == R.id.rb_top) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeDirection(SwipeBackDirection.FROM_TOP);
+                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_TOP);
                 } else if (checkedId == R.id.rb_bottom) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeDirection(SwipeBackDirection.FROM_BOTTOM);
+                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_BOTTOM);
                 } else {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeDirection(SwipeBackDirection.FROM_LEFT);
+                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_LEFT);
                 }
             }
         });

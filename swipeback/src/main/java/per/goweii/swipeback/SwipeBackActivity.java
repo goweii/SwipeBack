@@ -11,11 +11,10 @@ public class SwipeBackActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mSwipeBackHelper = SwipeBackHelper.inject(this);
-        mSwipeBackHelper.setTakeOverActivityEnterExitAnim(supportTakeOverActivityEnterExitAnim());
-        mSwipeBackHelper.setSwipeBackEnable(supportSwipeBack());
-        mSwipeBackHelper.setSwipeBackOnlyEdge(supportOnlyEdge());
-        mSwipeBackHelper.setSwipeBackForceEdge(supportForceEdge());
-        mSwipeBackHelper.setSwipeDirection(supportSwipeDirection());
+        mSwipeBackHelper.setSwipeBackEnable(swipeBackEnable());
+        mSwipeBackHelper.setSwipeBackOnlyEdge(swipeBackOnlyEdge());
+        mSwipeBackHelper.setSwipeBackForceEdge(swipeBackForceEdge());
+        mSwipeBackHelper.setSwipeBackDirection(swipeBackDirection());
         mSwipeBackHelper.getSwipeBackLayout().setShadowStartColor(0);
     }
 
@@ -44,24 +43,20 @@ public class SwipeBackActivity extends AppCompatActivity {
         }
     }
 
-    protected boolean supportSwipeBack() {
+    protected boolean swipeBackEnable() {
         return true;
     }
 
-    protected boolean supportOnlyEdge() {
+    protected boolean swipeBackOnlyEdge() {
         return false;
     }
 
-    protected boolean supportForceEdge() {
+    protected boolean swipeBackForceEdge() {
         return true;
-    }
-
-    protected boolean supportTakeOverActivityEnterExitAnim() {
-        return false;
     }
 
     @SwipeBackDirection
-    protected int supportSwipeDirection() {
+    protected int swipeBackDirection() {
         return SwipeBackDirection.FROM_LEFT;
     }
 }

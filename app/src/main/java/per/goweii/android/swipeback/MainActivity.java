@@ -15,7 +15,7 @@ public class MainActivity extends SwipeBackActivity {
     }
 
     @Override
-    protected boolean supportSwipeBack() {
+    protected boolean swipeBackEnable() {
         return false;
     }
 

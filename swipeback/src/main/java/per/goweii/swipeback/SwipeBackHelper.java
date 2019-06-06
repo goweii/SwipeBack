@@ -98,12 +98,12 @@ public class SwipeBackHelper {
         return mSwipeBackLayout.isSwipeBackForceEdge();
     }
 
-    public void setSwipeDirection(@SwipeBackDirection int direction) {
-        mSwipeBackLayout.setSwipeDirection(direction);
+    public void setSwipeBackDirection(@SwipeBackDirection int direction) {
+        mSwipeBackLayout.setSwipeBackDirection(direction);
     }
 
     @SwipeBackDirection
-    public int getSwipeDirection() {
-        return mSwipeBackLayout.getSwipeDirection();
+    public int getSwipeBackDirection() {
+        return mSwipeBackLayout.getSwipeBackDirection();
     }
 }
