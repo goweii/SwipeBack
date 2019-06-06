@@ -7,3 +7,32 @@
 - 支持内部滚动布局的多层嵌套，不影响全局滑动返回
 - 支持自定义边缘阴影颜色和宽度
 - 支持自定义底部Activity的遮罩颜色
+
+
+
+## 集成
+
+- ### 添加jitpack库
+
+```java
+// build.gradle(Project:)
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://www.jitpack.io' }
+    }
+}
+```
+
+- ### 添加依赖
+
+  [点击查看最新版本号](https://github.com/goweii/SwipeBack/releases)
+
+```java
+// build.gradle(Module:)
+dependencies {
+    implementation 'com.github.goweii:SwipeBack:1.0.0'
+}
+```
+
+## 
