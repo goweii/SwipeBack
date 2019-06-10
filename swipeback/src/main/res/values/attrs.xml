@@ -11,7 +11,7 @@
         <attr name="sbl_shadowStartColor" format="color|reference" />
         <attr name="sbl_shadowSize" format="dimension|reference" />
         <attr name="sbl_maskAlpha" format="integer|reference" />
-        <attr name="sbl_autoFinishedVelocityLimit" format="integer|reference" />
+        <attr name="sbl_autoFinishedVelocityLimit" format="float|reference" />
         <attr name="sbl_factor" format="float|reference" />
         <attr name="sbl_direction">
             <enum name="left" value="1" />

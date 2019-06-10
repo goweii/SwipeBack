@@ -31,25 +31,21 @@ public class SwipeBackHelper {
             if (!mSwipeBackLayout.isActivitySwiping()) {
                 mSwipeBackLayout.setActivityTranslucent(false);
             }
-//            if (mSwipeBackLayout.getPreviousChildView() != null) {
-//                mSwipeBackLayout.setActivityTranslucent(true);
-//            }
         }
     }
 
     public boolean finish() {
         if (mSwipeBackLayout.isTakeOverActivityEnterExitAnim()) {
-            mSwipeBackLayout.startExitAnim();
-            return false;
+            if (mSwipeBackLayout.isTakeOverActivityExitAnimRunning()) {
+                return true;
+            } else {
+                mSwipeBackLayout.startExitAnim();
+                return false;
+            }
         } else {
             if (mSwipeBackLayout.isActivitySwiping()) {
                 return false;
             } else {
-//                if (mSwipeBackLayout.isBackSuccess()) {
-//                    return true;
-//                } else {
-//                    mSwipeBackLayout.setActivityTranslucent(false);
-//                }
                 return true;
             }
         }

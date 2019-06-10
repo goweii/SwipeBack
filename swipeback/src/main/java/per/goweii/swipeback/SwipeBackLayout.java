@@ -93,21 +93,20 @@ public class SwipeBackLayout extends FrameLayout {
     private void init(@NonNull Context context, @Nullable AttributeSet attrs) {
         final int shadowStartColor = Color.argb(30, 0, 0, 0);
         final int shadowWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 30, context.getResources().getDisplayMetrics());
-        int takeOverActivityEnterExitAnimDuration = getContext().getResources().getInteger(R.integer.swipeback_activity_duration);
         TypedArray typedArray = getContext().obtainStyledAttributes(attrs, R.styleable.SwipeBackLayout);
-        mSwipeBackEnable = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_enable, true);
-        mActivityIsAlreadyTranslucent = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_activityIsAlreadyTranslucent, false);
-        mTakeOverActivityEnterExitAnim = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_takeOverActivityAnim, true);
-        mTakeOverActivityEnterExitAnimDuration = typedArray.getInteger(R.styleable.SwipeBackLayout_sbl_takeOverActivityAnimDuration, takeOverActivityEnterExitAnimDuration);
-        mSwipeBackForceEdge = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_forceEdge, true);
-        mSwipeBackOnlyEdge = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_onlyEdge, true);
-        mShadowEnable = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_shadowEnable, true);
+        mSwipeBackEnable = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_enable, mSwipeBackEnable);
+        mActivityIsAlreadyTranslucent = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_activityIsAlreadyTranslucent, mActivityIsAlreadyTranslucent);
+        mTakeOverActivityEnterExitAnim = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_takeOverActivityAnim, mTakeOverActivityEnterExitAnim);
+        mTakeOverActivityEnterExitAnimDuration = typedArray.getInteger(R.styleable.SwipeBackLayout_sbl_takeOverActivityAnimDuration, (int) mTakeOverActivityEnterExitAnimDuration);
+        mSwipeBackForceEdge = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_forceEdge, mSwipeBackForceEdge);
+        mSwipeBackOnlyEdge = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_onlyEdge, mSwipeBackOnlyEdge);
+        mShadowEnable = typedArray.getBoolean(R.styleable.SwipeBackLayout_sbl_shadowEnable, mShadowEnable);
         mShadowStartColor = typedArray.getColor(R.styleable.SwipeBackLayout_sbl_shadowStartColor, shadowStartColor);
         mShadowSize = (int) typedArray.getDimension(R.styleable.SwipeBackLayout_sbl_shadowSize, shadowWidth);
-        mMaskAlpha = typedArray.getInteger(R.styleable.SwipeBackLayout_sbl_maskAlpha, 150);
-        mAutoFinishedVelocityLimit = typedArray.getInteger(R.styleable.SwipeBackLayout_sbl_autoFinishedVelocityLimit, 2000);
-        mSwipeBackFactor = typedArray.getFloat(R.styleable.SwipeBackLayout_sbl_factor, 0.5F);
-        mSwipeBackDirection = typedArray.getInt(R.styleable.SwipeBackLayout_sbl_direction, SwipeBackDirection.FROM_LEFT);
+        mMaskAlpha = typedArray.getInteger(R.styleable.SwipeBackLayout_sbl_maskAlpha, mMaskAlpha);
+        mAutoFinishedVelocityLimit = typedArray.getFloat(R.styleable.SwipeBackLayout_sbl_autoFinishedVelocityLimit, mAutoFinishedVelocityLimit);
+        mSwipeBackFactor = typedArray.getFloat(R.styleable.SwipeBackLayout_sbl_factor, mSwipeBackFactor);
+        mSwipeBackDirection = typedArray.getInt(R.styleable.SwipeBackLayout_sbl_direction, mSwipeBackDirection);
         typedArray.recycle();
     }
 
@@ -189,10 +188,10 @@ public class SwipeBackLayout extends FrameLayout {
                 });
             } else {
                 setVisibility(View.VISIBLE);
-                mFraction = 1;
+                mFraction = 0;
                 mLeftOffset = 0;
                 mTopOffset = 0;
-                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, mFraction, mSwipeBackDirection);
+                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, 1, mSwipeBackDirection);
                 requestLayout();
             }
         } else {
@@ -242,11 +241,11 @@ public class SwipeBackLayout extends FrameLayout {
 
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        mTakeOverActivityExitAnimRunning = false;
                         if (mCurrentActivity != null) {
                             mCurrentActivity.finish();
                             mCurrentActivity.overridePendingTransition(0, 0);
                         }
+                        mTakeOverActivityExitAnimRunning = false;
                     }
 
                     @Override
@@ -786,10 +785,10 @@ public class SwipeBackLayout extends FrameLayout {
             if (!mTakeOverActivityEnterExitAnim) {
                 setActivityTranslucent(false);
             }
-            mFraction = 1;
+            mFraction = 0;
             mLeftOffset = 0;
             mTopOffset = 0;
-            getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, mFraction, mSwipeBackDirection);
+            getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, 1, mSwipeBackDirection);
             requestLayout();
         }
         if (mSwipeBackListener != null) {

@@ -34,6 +34,12 @@
             android:text="启动透明Activity"
             android:onClick="startTranslucentActivity"/>
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="启动透明接管进出场动画Activity"
+            android:onClick="startTakeOverAnimActivity"/>
+
     </LinearLayout>
 
 </LinearLayout>

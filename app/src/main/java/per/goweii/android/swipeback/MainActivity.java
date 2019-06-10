@@ -21,10 +21,16 @@ public class MainActivity extends SwipeBackActivity {
 
     public void startNormalActivity(View view) {
         startActivity(new Intent(this, SwipeBackNormalActivity.class));
+        overridePendingTransition(0, 0);
     }
 
     public void startTranslucentActivity(View view) {
         startActivity(new Intent(this, SwipeBackTranslucentActivity.class));
+    }
+
+    public void startTakeOverAnimActivity(View view) {
+        startActivity(new Intent(this, SwipeBackTakeOverAnimActivity.class));
+        overridePendingTransition(0, 0);
     }
 
 }
