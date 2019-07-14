@@ -7,7 +7,7 @@ public class SwipeBackTakeOverAnimActivity extends BaseSwipeBackActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSwipeBackHelper.getSwipeBackLayout().setTakeOverActivityEnterExitAnim(true);
+        mSwipeBackHelper.setTakeOverActivityEnterExitAnim(true);
     }
 }
 

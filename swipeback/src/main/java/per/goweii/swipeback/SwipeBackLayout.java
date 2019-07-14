@@ -21,6 +21,7 @@ import android.support.v4.view.MotionEventCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.ViewDragHelper;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -32,6 +33,8 @@ import java.util.List;
 import per.goweii.swipeback.transformer.ParallaxSwipeBackTransformer;
 
 public class SwipeBackLayout extends FrameLayout {
+
+    public static final String TAG = SwipeBackLayout.class.getSimpleName();
 
     private final ViewDragHelper mDragHelper;
     private int mTouchSlop;
@@ -265,6 +268,14 @@ public class SwipeBackLayout extends FrameLayout {
                 requestLayout();
             }
         }
+    }
+
+    public void setActivityIsAlreadyTranslucent(boolean activityIsAlreadyTranslucent) {
+        mActivityIsAlreadyTranslucent = activityIsAlreadyTranslucent;
+    }
+
+    public boolean isActivityIsAlreadyTranslucent() {
+        return mActivityIsAlreadyTranslucent;
     }
 
     public boolean isTakeOverActivityExitAnimRunning() {
@@ -529,7 +540,7 @@ public class SwipeBackLayout extends FrameLayout {
                 case SwipeBackDirection.FROM_BOTTOM:
                     return mTouchedEdge == ViewDragHelper.EDGE_BOTTOM;
                 default:
-                    break;
+                    return false;
             }
         }
         return true;
@@ -597,6 +608,7 @@ public class SwipeBackLayout extends FrameLayout {
 
         @Override
         public boolean tryCaptureView(@NonNull View child, int pointerId) {
+            Log.i(TAG, "tryCaptureView");
             if (isSwipeBackEnable()) {
                 mActivitySwiping = true;
                 setActivityTranslucent(true);
@@ -627,6 +639,7 @@ public class SwipeBackLayout extends FrameLayout {
                     }
                 }
             }
+            Log.i(TAG, "clampViewPositionHorizontal -> " + "mLeftOffset=" + mLeftOffset);
             return mLeftOffset;
         }
 
@@ -652,6 +665,7 @@ public class SwipeBackLayout extends FrameLayout {
                     }
                 }
             }
+            Log.i(TAG, "clampViewPositionVertical -> " + "mTopOffset=" + mTopOffset);
             return mTopOffset;
         }
 
@@ -672,6 +686,7 @@ public class SwipeBackLayout extends FrameLayout {
                 default:
                     break;
             }
+            Log.i(TAG, "onViewPositionChanged -> " + "mFraction=" + mFraction);
             onSwiping();
         }
 
@@ -718,6 +733,7 @@ public class SwipeBackLayout extends FrameLayout {
                         break;
                 }
             }
+            Log.i(TAG, "onViewReleased -> ");
         }
 
         @Override
@@ -730,15 +746,18 @@ public class SwipeBackLayout extends FrameLayout {
                     onFinish(true);
                 }
             }
+            Log.i(TAG, "onViewDragStateChanged -> " + "state=" + state);
         }
 
         @Override
         public int getViewHorizontalDragRange(@NonNull View child) {
+            Log.i(TAG, "getViewHorizontalDragRange -> " + "mWidth" + mWidth);
             return mWidth;
         }
 
         @Override
         public int getViewVerticalDragRange(@NonNull View child) {
+            Log.i(TAG, "getViewVerticalDragRange -> " + "mHeight" + mHeight);
             return mHeight;
         }
 
@@ -747,6 +766,7 @@ public class SwipeBackLayout extends FrameLayout {
             super.onEdgeTouched(edgeFlags, pointerId);
             //边缘Touch状态 开始滑动
             mTouchedEdge = edgeFlags;
+            Log.i(TAG, "onEdgeTouched -> " + "mTouchedEdge" + mTouchedEdge);
         }
     }
 
@@ -768,6 +788,7 @@ public class SwipeBackLayout extends FrameLayout {
         if (mSwipeBackListener != null) {
             mSwipeBackListener.onSwiping(mCurrentActivity, mCurrentChildView, mPreviousChildView, mFraction, mSwipeBackFactor, mSwipeBackDirection);
         }
+//        Log.i(TAG, "onSwiping -> " + "mFraction=" + mFraction);
     }
 
     private boolean mBackSuccess = false;
@@ -778,10 +799,12 @@ public class SwipeBackLayout extends FrameLayout {
 
     protected void onFinish(boolean backSuccess) {
         mActivitySwiping = false;
-        if (backSuccess) {
-            mBackSuccess = true;
+        mBackSuccess = backSuccess;
+        if (mBackSuccess) {
+            Log.i(TAG, "onFinish -> " + "mBackSuccess=" + mBackSuccess);
             finish();
         } else {
+            Log.i(TAG, "onFinish -> " + "mBackSuccess=" + mBackSuccess + ",mFraction=" + mFraction);
             if (!mTakeOverActivityEnterExitAnim) {
                 setActivityTranslucent(false);
             }

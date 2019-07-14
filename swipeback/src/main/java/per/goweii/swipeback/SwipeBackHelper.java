@@ -62,6 +62,14 @@ public class SwipeBackHelper {
         return mSwipeBackLayout;
     }
 
+    public void setActivityIsAlreadyTranslucent(boolean activityIsAlreadyTranslucent) {
+        mSwipeBackLayout.setActivityIsAlreadyTranslucent(activityIsAlreadyTranslucent);
+    }
+
+    public boolean isActivityIsAlreadyTranslucent() {
+        return mSwipeBackLayout.isActivityIsAlreadyTranslucent();
+    }
+
     public void setTakeOverActivityEnterExitAnim(boolean enable) {
         mSwipeBackLayout.setTakeOverActivityEnterExitAnim(enable);
     }
