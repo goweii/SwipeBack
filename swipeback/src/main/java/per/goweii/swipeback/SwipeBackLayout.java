@@ -532,13 +532,13 @@ public class SwipeBackLayout extends FrameLayout {
         if (mSwipeBackOnlyEdge) {
             switch (mSwipeBackDirection) {
                 case SwipeBackDirection.FROM_LEFT:
-                    return mTouchedEdge == ViewDragHelper.EDGE_LEFT;
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT);
                 case SwipeBackDirection.FROM_TOP:
-                    return mTouchedEdge == ViewDragHelper.EDGE_TOP;
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP);
                 case SwipeBackDirection.FROM_RIGHT:
-                    return mTouchedEdge == ViewDragHelper.EDGE_RIGHT;
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT);
                 case SwipeBackDirection.FROM_BOTTOM:
-                    return mTouchedEdge == ViewDragHelper.EDGE_BOTTOM;
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM);
                 default:
                     return false;
             }
@@ -767,6 +767,12 @@ public class SwipeBackLayout extends FrameLayout {
             //边缘Touch状态 开始滑动
             mTouchedEdge = edgeFlags;
             Log.i(TAG, "onEdgeTouched -> " + "mTouchedEdge" + mTouchedEdge);
+        }
+
+        @Override
+        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            super.onEdgeDragStarted(edgeFlags, pointerId);
+            Log.i(TAG, "onEdgeDragStarted -> " + "mTouchedEdge" + mTouchedEdge);
         }
     }
 
