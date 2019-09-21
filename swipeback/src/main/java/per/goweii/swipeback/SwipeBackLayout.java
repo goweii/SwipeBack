@@ -137,6 +137,7 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     private void findPreviousChildView(){
+        mPreviousChildView = null;
         Activity previousActivity = SwipeBackManager.getInstance().getPreviousActivity();
         if (previousActivity != null) {
             ViewGroup previousDecorView = (ViewGroup) previousActivity.getWindow().getDecorView();
