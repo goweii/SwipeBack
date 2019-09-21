@@ -29,6 +29,9 @@ public class ShrinkSwipeBackTransformer implements SwipeBackLayout.SwipeBackTran
 
     @Override
     public void transform(View currentView, View previousView, float fraction, int swipeDirection) {
+        if (previousView == null) {
+            return;
+        }
         float scale = mScale + (1 - mScale) * fraction;
         previousView.setScaleX(scale);
         previousView.setScaleY(scale);

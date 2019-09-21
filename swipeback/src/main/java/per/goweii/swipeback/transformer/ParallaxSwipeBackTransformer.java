@@ -32,6 +32,9 @@ public class ParallaxSwipeBackTransformer implements SwipeBackLayout.SwipeBackTr
 
     @Override
     public void transform(View currentView, View previousView, float fraction, int swipeDirection) {
+        if (previousView == null) {
+            return;
+        }
         if (swipeDirection == SwipeBackDirection.FROM_LEFT) {
             if (mMaxTranslation == -1) {
                 mMaxTranslation = previousView.getWidth();
