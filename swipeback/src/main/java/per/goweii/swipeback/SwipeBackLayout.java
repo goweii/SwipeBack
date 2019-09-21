@@ -128,6 +128,15 @@ public class SwipeBackLayout extends FrameLayout {
         addViewInLayout(decorChild, 0, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         mCurrentChildView = decorChild;
         decorView.addView(this);
+        findPreviousChildView();
+        if (mPreviousChildView != null && mTakeOverActivityEnterExitAnim) {
+            setActivityTranslucent(true);
+            activity.overridePendingTransition(0, 0);
+        }
+        startEnterAnim();
+    }
+
+    private void findPreviousChildView(){
         Activity previousActivity = SwipeBackManager.getInstance().getPreviousActivity();
         if (previousActivity != null) {
             ViewGroup previousDecorView = (ViewGroup) previousActivity.getWindow().getDecorView();
@@ -137,11 +146,6 @@ public class SwipeBackLayout extends FrameLayout {
                 mPreviousChildView = previousSwipeBackLayout.getChildAt(0);
             }
         }
-        if (previousActivity != null && mTakeOverActivityEnterExitAnim) {
-            setActivityTranslucent(true);
-            activity.overridePendingTransition(0, 0);
-        }
-        startEnterAnim();
     }
 
     public View getPreviousChildView() {
@@ -608,6 +612,7 @@ public class SwipeBackLayout extends FrameLayout {
 
         @Override
         public boolean tryCaptureView(@NonNull View child, int pointerId) {
+            findPreviousChildView();
             Log.i(TAG, "tryCaptureView");
             if (isSwipeBackEnable()) {
                 mActivitySwiping = true;
