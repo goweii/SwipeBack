@@ -9,12 +9,15 @@
     tools:context=".MainActivity">
 
     <per.goweii.actionbarex.common.ActionBarCommon
+        android:id="@+id/abc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimary"
         app:ab_autoImmersion="true"
         app:ab_titleBarHeight="44dp"
         app:abc_titleText="@string/app_name"
+        app:abc_rightText="模拟重建APP"
+        app:abc_rightTextColor="#fff"
         app:abc_titleTextColor="@android:color/white" />
 
     <LinearLayout

@@ -31,6 +31,7 @@ import android.widget.FrameLayout;
 import java.util.List;
 
 import per.goweii.swipeback.transformer.ParallaxSwipeBackTransformer;
+import per.goweii.swipeback.transformer.ShrinkSwipeBackTransformer;
 
 public class SwipeBackLayout extends FrameLayout {
 
@@ -42,6 +43,7 @@ public class SwipeBackLayout extends FrameLayout {
     private Activity mCurrentActivity;
     private List<View> mInnerScrollViews;
     private View mPreviousChildView;
+    private View mPreviousDecorView;
     private View mCurrentChildView;
     private boolean mActivityTranslucent = true;
     private boolean mActivitySwiping = false;
@@ -122,14 +124,14 @@ public class SwipeBackLayout extends FrameLayout {
         int background = a.getResourceId(0, 0);
         a.recycle();
         ViewGroup decorView = (ViewGroup) activity.getWindow().getDecorView();
-        ViewGroup decorChild = (ViewGroup) decorView.getChildAt(0);
+        View decorChild = decorView.getChildAt(0);
         decorChild.setBackgroundResource(background);
         decorView.removeViewInLayout(decorChild);
         addViewInLayout(decorChild, 0, new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         mCurrentChildView = decorChild;
         decorView.addView(this);
         findPreviousChildView();
-        if (mPreviousChildView != null && mTakeOverActivityEnterExitAnim) {
+        if (mPreviousDecorView != null && mTakeOverActivityEnterExitAnim) {
             setActivityTranslucent(true);
             activity.overridePendingTransition(0, 0);
         }
@@ -137,11 +139,13 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     private void findPreviousChildView(){
+        mPreviousDecorView = null;
         mPreviousChildView = null;
         Activity previousActivity = SwipeBackManager.getInstance().getPreviousActivity();
         if (previousActivity != null) {
             ViewGroup previousDecorView = (ViewGroup) previousActivity.getWindow().getDecorView();
-            ViewGroup previousDecorChild = (ViewGroup) previousDecorView.getChildAt(0);
+            mPreviousDecorView = previousDecorView;
+            View previousDecorChild = previousDecorView.getChildAt(0);
             if (previousDecorChild instanceof SwipeBackLayout) {
                 SwipeBackLayout previousSwipeBackLayout = (SwipeBackLayout) previousDecorChild;
                 mPreviousChildView = previousSwipeBackLayout.getChildAt(0);
@@ -153,8 +157,12 @@ public class SwipeBackLayout extends FrameLayout {
         return mPreviousChildView;
     }
 
+    public View getPreviousDecorView() {
+        return mPreviousDecorView;
+    }
+
     public void startEnterAnim() {
-        if (mPreviousChildView != null) {
+        if (mPreviousDecorView != null) {
             if (mTakeOverActivityEnterExitAnim) {
                 if (mTakeOverActivityExitAnimator != null) {
                     mTakeOverActivityExitAnimator.pause();
@@ -163,7 +171,7 @@ public class SwipeBackLayout extends FrameLayout {
                 mFraction = 1;
                 mTakeOverActivityEnterAnimator = ValueAnimator.ofFloat(mFraction, 0);
                 if (mTakeOverActivityEnterExitAnimDuration < 0L) {
-                    mTakeOverActivityEnterExitAnimDuration = mPreviousChildView.getResources().getInteger(R.integer.swipeback_activity_duration);
+                    mTakeOverActivityEnterExitAnimDuration = mPreviousDecorView.getResources().getInteger(R.integer.swipeback_activity_duration);
                 }
                 mTakeOverActivityEnterAnimator.setDuration(mTakeOverActivityEnterExitAnimDuration);
                 mTakeOverActivityEnterAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -184,7 +192,7 @@ public class SwipeBackLayout extends FrameLayout {
                         } else if (mSwipeBackDirection == SwipeBackDirection.FROM_BOTTOM) {
                             mTopOffset = (int) -(mHeight - mHeight * (1 - mFraction));
                         }
-                        getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, mFraction, mSwipeBackDirection);
+                        getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousDecorView, mFraction, mSwipeBackDirection);
                         requestLayout();
                     }
                 });
@@ -199,7 +207,7 @@ public class SwipeBackLayout extends FrameLayout {
                 mFraction = 0;
                 mLeftOffset = 0;
                 mTopOffset = 0;
-                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, 1, mSwipeBackDirection);
+                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousDecorView, 1, mSwipeBackDirection);
                 requestLayout();
             }
         } else {
@@ -208,7 +216,7 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     public void startExitAnim() {
-        if (mPreviousChildView != null) {
+        if (mPreviousDecorView != null) {
             if (mTakeOverActivityEnterExitAnim) {
                 if (mTakeOverActivityEnterAnimator != null) {
                     mTakeOverActivityEnterAnimator.pause();
@@ -220,7 +228,7 @@ public class SwipeBackLayout extends FrameLayout {
                 mTakeOverActivityExitAnimRunning = true;
                 mTakeOverActivityExitAnimator = ValueAnimator.ofFloat(mFraction, 1);
                 if (mTakeOverActivityEnterExitAnimDuration < 0L) {
-                    mTakeOverActivityEnterExitAnimDuration = mPreviousChildView.getResources().getInteger(R.integer.swipeback_activity_duration);
+                    mTakeOverActivityEnterExitAnimDuration = mPreviousDecorView.getResources().getInteger(R.integer.swipeback_activity_duration);
                 }
                 mTakeOverActivityExitAnimator.setDuration(mTakeOverActivityEnterExitAnimDuration);
                 mTakeOverActivityExitAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -238,7 +246,7 @@ public class SwipeBackLayout extends FrameLayout {
                         } else if (mSwipeBackDirection == SwipeBackDirection.FROM_BOTTOM) {
                             mTopOffset = (int) -(mHeight - mHeight * (1 - mFraction));
                         }
-                        getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, mFraction, mSwipeBackDirection);
+                        getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousDecorView, mFraction, mSwipeBackDirection);
                         requestLayout();
                     }
                 });
@@ -269,7 +277,7 @@ public class SwipeBackLayout extends FrameLayout {
                 mFraction = 1;
                 mLeftOffset = 0;
                 mTopOffset = 0;
-                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, 1, mSwipeBackDirection);
+                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousDecorView, 1, mSwipeBackDirection);
                 requestLayout();
             }
         }
@@ -790,17 +798,16 @@ public class SwipeBackLayout extends FrameLayout {
             mTakeOverActivityExitAnimator.pause();
         }
         invalidate();
-        if (mPreviousChildView != null) {
+        if (mPreviousDecorView != null) {
             if (mCurrentActivity.isFinishing() || mCurrentActivity.isDestroyed()) {
-                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, mFraction, mSwipeBackDirection);
+                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousDecorView, mFraction, mSwipeBackDirection);
             } else {
-                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, mFraction, mSwipeBackDirection);
+                getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousDecorView, mFraction, mSwipeBackDirection);
             }
         }
         if (mSwipeBackListener != null) {
-            mSwipeBackListener.onSwiping(mCurrentActivity, mCurrentChildView, mPreviousChildView, mFraction, mSwipeBackFactor, mSwipeBackDirection);
+            mSwipeBackListener.onSwiping(mCurrentActivity, mCurrentChildView, mPreviousDecorView, mFraction, mSwipeBackFactor, mSwipeBackDirection);
         }
-//        Log.i(TAG, "onSwiping -> " + "mFraction=" + mFraction);
     }
 
     private boolean mBackSuccess = false;
@@ -823,11 +830,11 @@ public class SwipeBackLayout extends FrameLayout {
             mFraction = 0;
             mLeftOffset = 0;
             mTopOffset = 0;
-            getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousChildView, 1, mSwipeBackDirection);
+            getNonNullSwipeBackTransformer().transform(mCurrentChildView, mPreviousDecorView, 1, mSwipeBackDirection);
             requestLayout();
         }
         if (mSwipeBackListener != null) {
-            mSwipeBackListener.onFinish(mCurrentActivity, mCurrentChildView, mPreviousChildView, backSuccess, mSwipeBackDirection);
+            mSwipeBackListener.onFinish(mCurrentActivity, mCurrentChildView, mPreviousDecorView, backSuccess, mSwipeBackDirection);
         }
     }
 

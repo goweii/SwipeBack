@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.CompoundButton;
@@ -11,6 +12,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
 
+import per.goweii.actionbarex.common.ActionBarCommon;
+import per.goweii.actionbarex.common.OnActionBarChildClickListener;
 import per.goweii.swipeback.SwipeBackActivity;
 import per.goweii.swipeback.SwipeBackDirection;
 import per.goweii.swipeback.transformer.ParallaxSwipeBackTransformer;
@@ -22,6 +25,14 @@ public abstract class BaseSwipeBackActivity extends SwipeBackActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_swipe_back);
+
+        ActionBarCommon abc = findViewById(R.id.abc);
+        abc.setOnRightTextClickListener(new OnActionBarChildClickListener() {
+            @Override
+            public void onClick(View v) {
+                App.recreate();
+            }
+        });
 
         RadioGroup rg_transformer = findViewById(R.id.rg_transformer);
         RadioButton rb_parallax = findViewById(R.id.rb_parallax);

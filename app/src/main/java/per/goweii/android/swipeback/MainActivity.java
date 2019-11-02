@@ -21,7 +21,8 @@ public class MainActivity extends SwipeBackActivity {
 
     public void startNormalActivity(View view) {
         startActivity(new Intent(this, SwipeBackNormalActivity.class));
-        overridePendingTransition(0, 0);
+        overridePendingTransition(R.anim.swipeback_activity_open_right_in,
+                R.anim.swipeback_activity_open_left_out);
     }
 
     public void startTranslucentActivity(View view) {

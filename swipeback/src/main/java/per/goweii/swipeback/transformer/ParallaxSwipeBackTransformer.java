@@ -18,8 +18,6 @@ public class ParallaxSwipeBackTransformer implements SwipeBackLayout.SwipeBackTr
     private final float mPercent;
     private final float mAlpha;
 
-    private int mMaxTranslation = -1;
-
     public ParallaxSwipeBackTransformer() {
         this(0.12F, 1F);
     }
@@ -35,29 +33,18 @@ public class ParallaxSwipeBackTransformer implements SwipeBackLayout.SwipeBackTr
         if (previousView == null) {
             return;
         }
+        int maxTranslation = previousView.getWidth();
         if (swipeDirection == SwipeBackDirection.FROM_LEFT) {
-            if (mMaxTranslation == -1) {
-                mMaxTranslation = previousView.getWidth();
-            }
-            float translation = (mMaxTranslation * mPercent) * (1 - fraction);
+            float translation = (maxTranslation * mPercent) * (1 - fraction);
             previousView.setTranslationX(-translation);
         } else if (swipeDirection == SwipeBackDirection.FROM_RIGHT) {
-            if (mMaxTranslation == -1) {
-                mMaxTranslation = previousView.getWidth();
-            }
-            float translation = mMaxTranslation * mPercent * (1 - fraction);
+            float translation = previousView.getWidth() * mPercent * (1 - fraction);
             previousView.setTranslationX(translation);
         } else if (swipeDirection == SwipeBackDirection.FROM_TOP) {
-            if (mMaxTranslation == -1) {
-                mMaxTranslation = previousView.getHeight();
-            }
-            float translation = mMaxTranslation * mPercent * (1 - fraction);
+            float translation = maxTranslation * mPercent * (1 - fraction);
             previousView.setTranslationY(-translation);
         } else if (swipeDirection == SwipeBackDirection.FROM_BOTTOM) {
-            if (mMaxTranslation == -1) {
-                mMaxTranslation = previousView.getHeight();
-            }
-            float translation = mMaxTranslation * mPercent * (1 - fraction);
+            float translation = maxTranslation * mPercent * (1 - fraction);
             previousView.setTranslationY(translation);
         }
         float alpha = mAlpha + (1 - mAlpha) * fraction;
