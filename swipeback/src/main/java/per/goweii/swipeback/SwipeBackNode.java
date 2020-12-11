@@ -1,8 +1,8 @@
 package per.goweii.swipeback;
 
 import android.app.Activity;
-import android.content.Context;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
@@ -26,43 +26,49 @@ public class SwipeBackNode {
         return mLayout;
     }
 
-    public SwipeBackTransformer getTransformer() {
-        return mTransformer;
-    }
-
     public void inject() {
         if (mLayout != null) {
             return;
         }
-        int swipeBackDirection = 0;
-        SwipeBackTransformer swipeBackTransformer = null;
-        if (mActivity instanceof SwipeBackable) {
-            SwipeBackable swipeBackable = (SwipeBackable) mActivity;
-            swipeBackDirection = swipeBackable.swipeBackDirection();
-            swipeBackTransformer = swipeBackable.swipeBackTransformer();
-        } else {
-            swipeBackDirection = SwipeBack.getInstance().getSwipeBackDirection();
-            swipeBackTransformer = SwipeBack.getInstance().getSwipeBackTransformer();
-        }
-        if (swipeBackDirection == 0) {
-            return;
-        }
+        final int swipeBackDirection = getActivitySwipeBackDirection();
         SwipeBackLayout swipeBackLayout = new SwipeBackLayout(mActivity);
         swipeBackLayout.setSwipeDirection(swipeBackDirection);
         swipeBackLayout.setOnSwipeListener(new SwipeBackListener());
         FrameLayout decorView = (FrameLayout) mActivity.getWindow().getDecorView();
-        View activityContentView = decorView.findViewById(android.R.id.content);
-        int activityContentViewIndex = decorView.indexOfChild(activityContentView);
-        decorView.removeViewInLayout(activityContentView);
-        FrameLayout.LayoutParams activityContentLayoutParams = (FrameLayout.LayoutParams) activityContentView.getLayoutParams();
-        activityContentView.setLayoutParams(null);
-        swipeBackLayout.addView(activityContentView, new FrameLayout.LayoutParams(
+        ViewGroup activityContentView = decorView.findViewById(android.R.id.content);
+        View userContentView = activityContentView.getChildAt(0);
+        activityContentView.removeView(userContentView);
+        ViewGroup.LayoutParams userContentViewParams = userContentView.getLayoutParams();
+        userContentView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
                 FrameLayout.LayoutParams.MATCH_PARENT
         ));
-        decorView.addView(swipeBackLayout, activityContentViewIndex, activityContentLayoutParams);
+        swipeBackLayout.addView(userContentView);
+        swipeBackLayout.setLayoutParams(userContentViewParams);
+        activityContentView.addView(swipeBackLayout);
         mLayout = swipeBackLayout;
-        mTransformer = swipeBackTransformer;
+    }
+
+    private int getActivitySwipeBackDirection() {
+        final int swipeBackDirection;
+        if (mActivity instanceof SwipeBackable) {
+            SwipeBackable swipeBackable = (SwipeBackable) mActivity;
+            swipeBackDirection = swipeBackable.swipeBackDirection();
+        } else {
+            swipeBackDirection = SwipeBack.getInstance().getSwipeBackDirection();
+        }
+        return swipeBackDirection;
+    }
+
+    private SwipeBackTransformer getActivitySwipeBackTransformer() {
+        final SwipeBackTransformer swipeBackTransformer;
+        if (mActivity instanceof SwipeBackable) {
+            SwipeBackable swipeBackable = (SwipeBackable) mActivity;
+            swipeBackTransformer = swipeBackable.swipeBackTransformer();
+        } else {
+            swipeBackTransformer = SwipeBack.getInstance().getSwipeBackTransformer();
+        }
+        return swipeBackTransformer;
     }
 
     @Override
@@ -81,17 +87,34 @@ public class SwipeBackNode {
     private class SwipeBackListener implements SwipeBackLayout.OnSwipeListener {
         @Override
         public void onStart() {
-
+            final int swipeBackDirection = getActivitySwipeBackDirection();
+            mLayout.setSwipeDirection(swipeBackDirection);
+            mTransformer = getActivitySwipeBackTransformer();
         }
 
         @Override
         public void onSwiping(int direction, float fraction) {
-
+            if (mTransformer != null) {
+                SwipeBackNode previousNode = SwipeBackManager.getInstance().getPreviousNode(SwipeBackNode.this);
+                View previewView = null;
+                if (previousNode != null) {
+                    if (previousNode.getLayout() != null) {
+                        previewView = previousNode.getLayout();
+                    } else {
+                        View decorView = mActivity.getWindow().getDecorView();
+                        previewView = decorView.findViewById(android.R.id.content);
+                    }
+                }
+                mTransformer.transform(mLayout, previewView, fraction, direction);
+            }
         }
 
         @Override
         public void onEnd(int direction) {
-
+            if (direction == 0) {
+                return;
+            }
+            mActivity.finish();
         }
     }
 }

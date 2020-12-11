@@ -1,4 +1,4 @@
-package per.goweii.swipeback;
+package per.goweii.swipeback.utils;
 
 import android.app.Activity;
 import android.content.Context;

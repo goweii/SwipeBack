@@ -1,24 +1,32 @@
 package per.goweii.android.swipeback;
 
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
+
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.Switch;
 
 import per.goweii.actionbarex.common.ActionBarCommon;
 import per.goweii.actionbarex.common.OnActionBarChildClickListener;
+import per.goweii.swipeback.SwipeBackDirection;
+import per.goweii.swipeback.SwipeBackTransformer;
+import per.goweii.swipeback.SwipeBackable;
 import per.goweii.swipeback.transformer.ParallaxSwipeBackTransformer;
 import per.goweii.swipeback.transformer.ShrinkSwipeBackTransformer;
 
-public abstract class BaseSwipeBackActivity extends AppCompatActivity {
+public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBackable {
+
+    private int mSwipeBackDirection = SwipeBackDirection.NONE;
+    private SwipeBackTransformer mSwipeBackTransformer = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,62 +47,57 @@ public abstract class BaseSwipeBackActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId == R.id.rb_parallax) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackTransformer(new ParallaxSwipeBackTransformer());
+                    mSwipeBackTransformer = new ParallaxSwipeBackTransformer();
                 } else if (checkedId == R.id.rb_shrink) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackTransformer(new ShrinkSwipeBackTransformer());
+                    mSwipeBackTransformer = new ShrinkSwipeBackTransformer();
                 } else {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackTransformer(null);
+                    mSwipeBackTransformer = null;
                 }
             }
         });
         rb_parallax.setChecked(true);
 
-        RadioGroup rg_direction = findViewById(R.id.rg_direction);
-        RadioButton rb_left = findViewById(R.id.rb_left);
-        rg_direction.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId == R.id.rb_left) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_LEFT);
-                } else if (checkedId == R.id.rb_right) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_RIGHT);
-                } else if (checkedId == R.id.rb_top) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_TOP);
-                } else if (checkedId == R.id.rb_bottom) {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_BOTTOM);
-                } else {
-                    mSwipeBackHelper.getSwipeBackLayout().setSwipeBackDirection(SwipeBackDirection.FROM_LEFT);
-                }
-            }
-        });
-        rb_left.setChecked(true);
-
-        Switch sw_enable = findViewById(R.id.sw_enable);
-        sw_enable.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        final CheckBox cb_left = findViewById(R.id.cb_left);
+        final CheckBox cb_right = findViewById(R.id.cb_right);
+        final CheckBox cb_top = findViewById(R.id.cb_top);
+        final CheckBox cb_bottom = findViewById(R.id.cb_bottom);
+        CompoundButton.OnCheckedChangeListener onCheckedChangeListener = new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mSwipeBackHelper.setSwipeBackEnable(isChecked);
+                mSwipeBackDirection = 0;
+                if (cb_left.isChecked()) {
+                    mSwipeBackDirection = mSwipeBackDirection | SwipeBackDirection.LEFT;
+                }
+                if (cb_right.isChecked()) {
+                    mSwipeBackDirection = mSwipeBackDirection | SwipeBackDirection.RIGHT;
+                }
+                if (cb_top.isChecked()) {
+                    mSwipeBackDirection = mSwipeBackDirection | SwipeBackDirection.TOP;
+                }
+                if (cb_bottom.isChecked()) {
+                    mSwipeBackDirection = mSwipeBackDirection | SwipeBackDirection.BOTTOM;
+                }
             }
-        });
-        sw_enable.setChecked(mSwipeBackHelper.isSwipeBackEnable());
+        };
+        cb_left.setOnCheckedChangeListener(onCheckedChangeListener);
+        cb_right.setOnCheckedChangeListener(onCheckedChangeListener);
+        cb_top.setOnCheckedChangeListener(onCheckedChangeListener);
+        cb_bottom.setOnCheckedChangeListener(onCheckedChangeListener);
+        cb_left.setChecked(true);
 
-        Switch sw_only_edge = findViewById(R.id.sw_only_edge);
+        SwitchCompat sw_only_edge = findViewById(R.id.sw_only_edge);
         sw_only_edge.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mSwipeBackHelper.setSwipeBackOnlyEdge(isChecked);
             }
         });
-        sw_only_edge.setChecked(mSwipeBackHelper.isSwipeBackOnlyEdge());
 
-        Switch sw_force_edge = findViewById(R.id.sw_force_edge);
+        SwitchCompat sw_force_edge = findViewById(R.id.sw_force_edge);
         sw_force_edge.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mSwipeBackHelper.setSwipeBackForceEdge(isChecked);
             }
         });
-        sw_force_edge.setChecked(mSwipeBackHelper.isSwipeBackForceEdge());
 
         RecyclerView rv = findViewById(R.id.rv);
         rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
@@ -112,5 +115,15 @@ public abstract class BaseSwipeBackActivity extends AppCompatActivity {
             }
         });
         wv.loadUrl("https://github.com/goweii");
+    }
+
+    @Override
+    public int swipeBackDirection() {
+        return mSwipeBackDirection;
+    }
+
+    @Override
+    public SwipeBackTransformer swipeBackTransformer() {
+        return mSwipeBackTransformer;
     }
 }

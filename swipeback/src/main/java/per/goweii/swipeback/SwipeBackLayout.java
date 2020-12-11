@@ -22,6 +22,10 @@ import androidx.customview.widget.ViewDragHelper;
 import java.util.ArrayList;
 import java.util.List;
 
+import per.goweii.swipeback.utils.DragCompat;
+import per.goweii.swipeback.utils.ScrollCompat;
+import per.goweii.swipeback.utils.Utils;
+
 @SuppressWarnings({"unused"})
 public class SwipeBackLayout extends FrameLayout implements NestedScrollingParent3 {
     public static final int DIRECTION_NONE = 0;

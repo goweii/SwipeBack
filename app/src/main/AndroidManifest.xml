@@ -29,9 +29,6 @@
         <activity
             android:name=".SwipeBackTranslucentActivity"
             android:theme="@style/AppTheme.Translucent" />
-        <activity
-            android:name=".SwipeBackTakeOverAnimActivity"
-            android:theme="@style/AppTheme.Translucent" />
 
     </application>
 
