@@ -1,4 +1,6 @@
 package per.goweii.android.swipeback;
 
-public class SwipeBackNormalActivity extends BaseSwipeBackActivity {
+import android.support.v7.app.AppCompatActivity;
+
+public class SwipeBackNormalActivity extends AppCompatActivity {
 }

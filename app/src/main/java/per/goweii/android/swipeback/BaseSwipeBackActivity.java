@@ -2,6 +2,7 @@ package per.goweii.android.swipeback;
 
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -14,12 +15,10 @@ import android.widget.Switch;
 
 import per.goweii.actionbarex.common.ActionBarCommon;
 import per.goweii.actionbarex.common.OnActionBarChildClickListener;
-import per.goweii.swipeback.SwipeBackActivity;
-import per.goweii.swipeback.SwipeBackDirection;
 import per.goweii.swipeback.transformer.ParallaxSwipeBackTransformer;
 import per.goweii.swipeback.transformer.ShrinkSwipeBackTransformer;
 
-public abstract class BaseSwipeBackActivity extends SwipeBackActivity {
+public abstract class BaseSwipeBackActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

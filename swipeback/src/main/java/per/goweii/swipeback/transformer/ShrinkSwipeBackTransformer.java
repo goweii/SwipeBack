@@ -1,19 +1,15 @@
 package per.goweii.swipeback.transformer;
 
-import android.support.annotation.FloatRange;
 import android.view.View;
 
-import per.goweii.swipeback.SwipeBackLayout;
+import androidx.annotation.FloatRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-/**
- * @author CuiZhen
- * @date 2019/5/22
- * QQ: 302833254
- * E-mail: goweii@163.com
- * GitHub: https://github.com/goweii
- */
-public class ShrinkSwipeBackTransformer implements SwipeBackLayout.SwipeBackTransformer {
+import per.goweii.swipeback.SwipeBackDirection;
+import per.goweii.swipeback.SwipeBackTransformer;
 
+public class ShrinkSwipeBackTransformer implements SwipeBackTransformer {
     private final float mScale;
     private final float mAlpha;
 
@@ -28,7 +24,12 @@ public class ShrinkSwipeBackTransformer implements SwipeBackLayout.SwipeBackTran
     }
 
     @Override
-    public void transform(View currentView, View previousView, float fraction, int swipeDirection) {
+    public void transform(
+            @NonNull View currentView,
+            @Nullable View previousView,
+            @FloatRange(from = 0.0, to = 1.0) float fraction,
+            @SwipeBackDirection int swipeDirection
+    ) {
         if (previousView == null) {
             return;
         }

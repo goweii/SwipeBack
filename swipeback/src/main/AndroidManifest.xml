@@ -1,12 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="per.goweii.swipeback" >
 
-    <application>
-        <provider
-            android:name=".SwipeBackProvider"
-            android:authorities="${applicationId}.swipebackprovider"
-            android:exported="false"
-            android:multiprocess="true" />
-    </application>
+    <application></application>
 
 </manifest>

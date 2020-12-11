@@ -1,20 +1,15 @@
 package per.goweii.swipeback.transformer;
 
-import android.support.annotation.FloatRange;
 import android.view.View;
 
-import per.goweii.swipeback.SwipeBackLayout;
+import androidx.annotation.FloatRange;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import per.goweii.swipeback.SwipeBackDirection;
+import per.goweii.swipeback.SwipeBackTransformer;
 
-/**
- * @author CuiZhen
- * @date 2019/5/22
- * QQ: 302833254
- * E-mail: goweii@163.com
- * GitHub: https://github.com/goweii
- */
-public class ParallaxSwipeBackTransformer implements SwipeBackLayout.SwipeBackTransformer {
-
+public class ParallaxSwipeBackTransformer implements SwipeBackTransformer {
     private final float mPercent;
     private final float mAlpha;
 
@@ -29,23 +24,28 @@ public class ParallaxSwipeBackTransformer implements SwipeBackLayout.SwipeBackTr
     }
 
     @Override
-    public void transform(View currentView, View previousView, float fraction, int swipeDirection) {
+    public void transform(
+            @NonNull View currentView,
+            @Nullable View previousView,
+            @FloatRange(from = 0.0, to = 1.0) float fraction,
+            @SwipeBackDirection int swipeDirection
+    ) {
         if (previousView == null) {
             return;
         }
         int maxTranslation = previousView.getWidth();
-        if (swipeDirection == SwipeBackDirection.FROM_LEFT) {
-            float translation = (maxTranslation * mPercent) * (1 - fraction);
-            previousView.setTranslationX(-translation);
-        } else if (swipeDirection == SwipeBackDirection.FROM_RIGHT) {
+        if (swipeDirection == SwipeBackDirection.LEFT) {
             float translation = previousView.getWidth() * mPercent * (1 - fraction);
             previousView.setTranslationX(translation);
-        } else if (swipeDirection == SwipeBackDirection.FROM_TOP) {
-            float translation = maxTranslation * mPercent * (1 - fraction);
-            previousView.setTranslationY(-translation);
-        } else if (swipeDirection == SwipeBackDirection.FROM_BOTTOM) {
+        } else if (swipeDirection == SwipeBackDirection.RIGHT) {
+            float translation = (maxTranslation * mPercent) * (1 - fraction);
+            previousView.setTranslationX(-translation);
+        } else if (swipeDirection == SwipeBackDirection.TOP) {
             float translation = maxTranslation * mPercent * (1 - fraction);
             previousView.setTranslationY(translation);
+        } else if (swipeDirection == SwipeBackDirection.BOTTOM) {
+            float translation = maxTranslation * mPercent * (1 - fraction);
+            previousView.setTranslationY(-translation);
         }
         float alpha = mAlpha + (1 - mAlpha) * fraction;
         previousView.setAlpha(alpha);

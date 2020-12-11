@@ -1,8 +1,9 @@
 package per.goweii.swipeback;
 
-import android.support.v4.view.ScrollingView;
-import android.support.v4.view.ViewCompat;
 import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.core.view.ScrollingView;
 
 /**
  * @author CuiZhen
@@ -13,23 +14,39 @@ import android.view.View;
  */
 public class ScrollCompat {
 
-    public static boolean canScrollHorizontally(View v, int direction) {
+    public static boolean canScrollUp(@NonNull View view) {
+        return ScrollCompat.canScrollVertically(view, -1);
+    }
+
+    public static boolean canScrollDown(@NonNull View view) {
+        return ScrollCompat.canScrollVertically(view, 1);
+    }
+
+    public static boolean canScrollLeft(@NonNull View view) {
+        return ScrollCompat.canScrollHorizontally(view, -1);
+    }
+
+    public static boolean canScrollRight(@NonNull View view) {
+        return ScrollCompat.canScrollHorizontally(view, 1);
+    }
+
+    public static boolean canScrollHorizontally(@NonNull View v, int direction) {
         if (v instanceof ScrollingView) {
             return canScrollingViewScrollHorizontally((ScrollingView) v, direction);
         } else {
-            return ViewCompat.canScrollHorizontally(v, direction);
+            return v.canScrollHorizontally(direction);
         }
     }
 
-    public static boolean canScrollVertically(View v, int direction) {
+    public static boolean canScrollVertically(@NonNull View v, int direction) {
         if (v instanceof ScrollingView) {
             return canScrollingViewScrollVertically((ScrollingView) v, direction);
         } else {
-            return ViewCompat.canScrollVertically(v, direction);
+            return v.canScrollVertically(direction);
         }
     }
 
-    private static boolean canScrollingViewScrollHorizontally(ScrollingView view, int direction) {
+    private static boolean canScrollingViewScrollHorizontally(@NonNull ScrollingView view, int direction) {
         final int offset = view.computeHorizontalScrollOffset();
         final int range = view.computeHorizontalScrollRange() - view.computeHorizontalScrollExtent();
         if (range == 0) return false;
@@ -40,7 +57,7 @@ public class ScrollCompat {
         }
     }
 
-    private static boolean canScrollingViewScrollVertically(ScrollingView view, int direction) {
+    private static boolean canScrollingViewScrollVertically(@NonNull ScrollingView view, int direction) {
         final int offset = view.computeVerticalScrollOffset();
         final int range = view.computeVerticalScrollRange() - view.computeVerticalScrollExtent();
         if (range == 0) return false;

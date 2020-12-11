@@ -2,21 +2,15 @@ package per.goweii.android.swipeback;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import per.goweii.swipeback.SwipeBackActivity;
-
-public class MainActivity extends SwipeBackActivity {
+public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-    }
-
-    @Override
-    protected boolean swipeBackEnable() {
-        return false;
     }
 
     public void startNormalActivity(View view) {
@@ -27,11 +21,6 @@ public class MainActivity extends SwipeBackActivity {
 
     public void startTranslucentActivity(View view) {
         startActivity(new Intent(this, SwipeBackTranslucentActivity.class));
-    }
-
-    public void startTakeOverAnimActivity(View view) {
-        startActivity(new Intent(this, SwipeBackTakeOverAnimActivity.class));
-        overridePendingTransition(0, 0);
     }
 
 }
