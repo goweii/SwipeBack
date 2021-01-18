@@ -10,9 +10,9 @@ import androidx.annotation.IntDef;
         SwipeBackDirection.BOTTOM
 })
 public @interface SwipeBackDirection {
-    int NONE = SwipeBackLayout.DIRECTION_NONE;
-    int LEFT = SwipeBackLayout.DIRECTION_LEFT;
-    int TOP = SwipeBackLayout.DIRECTION_TOP;
-    int RIGHT = SwipeBackLayout.DIRECTION_RIGHT;
-    int BOTTOM = SwipeBackLayout.DIRECTION_BOTTOM;
+    int NONE = 0;
+    int LEFT = 1;
+    int TOP = 2;
+    int RIGHT = 3;
+    int BOTTOM = 4;
 }

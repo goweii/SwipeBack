@@ -1,6 +1,9 @@
 package per.goweii.swipeback;
 
 import android.app.Activity;
+import android.content.res.TypedArray;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -22,7 +25,7 @@ public class SwipeBackNode {
         return mActivity;
     }
 
-    public SwipeBackLayout getLayout() {
+    public SwipeBackLayout getSwipeBackLayout() {
         return mLayout;
     }
 
@@ -32,12 +35,11 @@ public class SwipeBackNode {
         }
         final int swipeBackDirection = getActivitySwipeBackDirection();
         SwipeBackLayout swipeBackLayout = new SwipeBackLayout(mActivity);
-        swipeBackLayout.setSwipeDirection(swipeBackDirection);
-        swipeBackLayout.setOnSwipeListener(new SwipeBackListener());
+        swipeBackLayout.setSwipeBackDirection(swipeBackDirection);
+        swipeBackLayout.setSwipeBackListener(new SwipeBackListener());
         FrameLayout decorView = (FrameLayout) mActivity.getWindow().getDecorView();
-        ViewGroup activityContentView = decorView.findViewById(android.R.id.content);
-        View userContentView = activityContentView.getChildAt(0);
-        activityContentView.removeView(userContentView);
+        View userContentView = decorView.getChildAt(0);
+        decorView.removeViewInLayout(userContentView);
         ViewGroup.LayoutParams userContentViewParams = userContentView.getLayoutParams();
         userContentView.setLayoutParams(new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -45,8 +47,9 @@ public class SwipeBackNode {
         ));
         swipeBackLayout.addView(userContentView);
         swipeBackLayout.setLayoutParams(userContentViewParams);
-        activityContentView.addView(swipeBackLayout);
+        decorView.addView(swipeBackLayout);
         mLayout = swipeBackLayout;
+        mTransformer = getActivitySwipeBackTransformer();
     }
 
     private int getActivitySwipeBackDirection() {
@@ -84,37 +87,32 @@ public class SwipeBackNode {
         return Objects.hash(mActivity);
     }
 
-    private class SwipeBackListener implements SwipeBackLayout.OnSwipeListener {
+    private class SwipeBackListener implements SwipeBackLayout.SwipeBackListener {
         @Override
-        public void onStart() {
-            final int swipeBackDirection = getActivitySwipeBackDirection();
-            mLayout.setSwipeDirection(swipeBackDirection);
-            mTransformer = getActivitySwipeBackTransformer();
+        public void onSwipeStart(float swipeFraction, int swipeDirection) {
+            SwipeBackCompat.convertActivityToTranslucent(mActivity);
         }
 
         @Override
-        public void onSwiping(int direction, float fraction) {
+        public void onSwiping(float swipeFraction, int swipeDirection) {
             if (mTransformer != null) {
                 SwipeBackNode previousNode = SwipeBackManager.getInstance().getPreviousNode(SwipeBackNode.this);
-                View previewView = null;
                 if (previousNode != null) {
-                    if (previousNode.getLayout() != null) {
-                        previewView = previousNode.getLayout();
-                    } else {
-                        View decorView = mActivity.getWindow().getDecorView();
-                        previewView = decorView.findViewById(android.R.id.content);
-                    }
+                    FrameLayout decorView = (FrameLayout) previousNode.getActivity().getWindow().getDecorView();
+                    View previewView = decorView.getChildAt(0);
+                    mTransformer.transform(mLayout, previewView, swipeFraction, swipeDirection);
                 }
-                mTransformer.transform(mLayout, previewView, fraction, direction);
             }
         }
 
         @Override
-        public void onEnd(int direction) {
-            if (direction == 0) {
-                return;
+        public void onSwipeEnd(float swipeFraction, int swipeDirection) {
+            if (swipeFraction != 1) {
+                SwipeBackCompat.convertActivityFromTranslucent(mActivity);
+            } else {
+                mActivity.finish();
+                mActivity.overridePendingTransition(0, 0);
             }
-            mActivity.finish();
         }
     }
 }

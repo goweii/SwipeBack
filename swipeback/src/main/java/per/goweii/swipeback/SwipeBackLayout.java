@@ -2,914 +2,535 @@ package per.goweii.swipeback;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
-import android.widget.Scroller;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.FloatRange;
+import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.NestedScrollingParent3;
-import androidx.core.view.NestedScrollingParentHelper;
-import androidx.core.view.ScrollingView;
+import androidx.core.view.MotionEventCompat;
 import androidx.core.view.ViewCompat;
 import androidx.customview.widget.ViewDragHelper;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import per.goweii.swipeback.utils.DragCompat;
-import per.goweii.swipeback.utils.ScrollCompat;
-import per.goweii.swipeback.utils.Utils;
+public class SwipeBackLayout extends FrameLayout {
 
-@SuppressWarnings({"unused"})
-public class SwipeBackLayout extends FrameLayout implements NestedScrollingParent3 {
-    public static final int DIRECTION_NONE = 0;
-    public static final int DIRECTION_LEFT = 1;
-    public static final int DIRECTION_TOP = 1 << 1;
-    public static final int DIRECTION_RIGHT = 1 << 2;
-    public static final int DIRECTION_BOTTOM = 1 << 3;
+    public static final String TAG = SwipeBackLayout.class.getSimpleName();
 
     private final ViewDragHelper mDragHelper;
-    private final Scroller mScroller;
-    private final NestedScrollingParentHelper mNestedHelper;
-    private final float mMaxVelocity;
-    private final float mMinVelocity;
     private final int mTouchSlop;
+    private final Rect mShadowRect = new Rect();
     private final List<View> mInnerScrollViews = new ArrayList<>(0);
 
-    private int mSwipeDirection = DIRECTION_NONE;
-    private OnSwipeListener mOnSwipeListener = null;
+    private boolean mSwiping = false;
+    private float mFraction = 0;
+    private float mDownX = 0;
+    private float mDownY = 0;
+    private int mWidth = 0;
+    private int mHeight = 0;
+    private int mLeftOffset = 0;
+    private int mTopOffset = 0;
+    private int mTouchedEdge = ViewDragHelper.INVALID_POINTER;
+    private GradientDrawable mShadowDrawable = null;
 
-    private View mSwipeView = null;
+    private boolean mShadowEnable = true;
+    private int mShadowStartColor = 0;
+    private int mShadowSize = 0;
+    @SwipeBackDirection
+    private int mSwipeBackDirection = SwipeBackDirection.NONE;
+    private boolean mSwipeBackForceEdge = true;
+    private boolean mSwipeBackOnlyEdge = false;
+    private float mSwipeBackFactor = 0.5f;
+    private float mSwipeBackVelocity = 2000f;
+    private int mMaskAlpha = 150;
 
-    private boolean mUsingNested = false;
-    private boolean mHandleTouchEvent = false;
-    private float mDownX = 0F;
-    private float mDownY = 0F;
-    private int mLeft = 0;
-    private int mTop = 0;
-    private int mRight = 0;
-    private int mBottom = 0;
-    private int mCurrSwipeDirection = DIRECTION_NONE;
-    @FloatRange(from = 0F, to = 1F)
-    private float mSwipeFraction = 0F;
-    private float mVelocity = 0F;
+    private SwipeBackListener mSwipeBackListener;
 
     public SwipeBackLayout(@NonNull Context context) {
-        this(context, null);
+        super(context);
+        setWillNotDraw(false);
+        mDragHelper = ViewDragHelper.create(this, 1f, new DragHelperCallback());
+        mDragHelper.setEdgeTrackingEnabled(mSwipeBackDirection);
+        mTouchSlop = mDragHelper.getTouchSlop();
     }
 
-    public SwipeBackLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs, 0);
+    public boolean isSwipeBackEnable() {
+        return mSwipeBackDirection != SwipeBackDirection.NONE;
     }
 
-    public SwipeBackLayout(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
-        mDragHelper = ViewDragHelper.create(this, new DragCallback());
-        mScroller = new Scroller(context, new DecelerateInterpolator());
-        mNestedHelper = new NestedScrollingParentHelper(this);
-        final ViewConfiguration vc = ViewConfiguration.get(context);
-        mTouchSlop = vc.getScaledTouchSlop();
-        mMaxVelocity = vc.getScaledMaximumFlingVelocity();
-        mMinVelocity = vc.getScaledMinimumFlingVelocity();
+    public void setSwipeBackForceEdge(boolean enable) {
+        mSwipeBackForceEdge = enable;
     }
 
-    public void setOnSwipeListener(OnSwipeListener onSwipeListener) {
-        mOnSwipeListener = onSwipeListener;
+    public boolean isSwipeBackForceEdge() {
+        return mSwipeBackForceEdge;
     }
 
-    public void setSwipeDirection(int swipeDirection) {
-        mSwipeDirection = swipeDirection;
-    }
-
-    public boolean canSwipe() {
-        return mSwipeDirection != DIRECTION_NONE;
-    }
-
-    public boolean canSwipeDirection(int swipeDirection) {
-        return (mSwipeDirection & swipeDirection) != 0;
-    }
-
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        return super.dispatchTouchEvent(ev);
-    }
-
-    @Override
-    public boolean onInterceptTouchEvent(@NonNull MotionEvent ev) {
-        if (!canSwipe()) {
-            mHandleTouchEvent = false;
-            return super.onInterceptTouchEvent(ev);
+    public void setSwipeBackFactor(@FloatRange(from = 0.0f, to = 1.0f) float swipeBackFactor) {
+        if (swipeBackFactor > 1) {
+            swipeBackFactor = 1;
+        } else if (swipeBackFactor < 0) {
+            swipeBackFactor = 0;
         }
-        switch (ev.getAction() & MotionEvent.ACTION_MASK) {
+        this.mSwipeBackFactor = swipeBackFactor;
+    }
+
+    public float getSwipeBackFactor() {
+        return mSwipeBackFactor;
+    }
+
+    public void setShadowEnable(boolean shadowEnable) {
+        mShadowEnable = shadowEnable;
+    }
+
+    public boolean isShadowEnable() {
+        return mShadowEnable;
+    }
+
+    public void setShadowStartColor(@ColorInt int colorInt) {
+        mShadowStartColor = colorInt;
+    }
+
+    public void setShadowSize(int px) {
+        mShadowSize = px;
+    }
+
+    public void setMaskAlpha(@IntRange(from = 0, to = 255) int maskAlpha) {
+        if (maskAlpha > 255) {
+            maskAlpha = 255;
+        } else if (maskAlpha < 0) {
+            maskAlpha = 0;
+        }
+        this.mMaskAlpha = maskAlpha;
+    }
+
+    public int getMaskAlpha() {
+        return mMaskAlpha;
+    }
+
+    public void setSwipeBackDirection(@SwipeBackDirection int direction) {
+        mSwipeBackDirection = direction;
+        mDragHelper.setEdgeTrackingEnabled(direction);
+    }
+
+    public int getSwipeBackDirection() {
+        return mSwipeBackDirection;
+    }
+
+    public float getSwipeBackVelocity() {
+        return mSwipeBackVelocity;
+    }
+
+    public void setSwipeBackVelocity(@FloatRange(from = 0.0f) float swipeBackVelocity) {
+        this.mSwipeBackVelocity = swipeBackVelocity;
+    }
+
+    public boolean isSwipeBackOnlyEdge() {
+        return mSwipeBackOnlyEdge;
+    }
+
+    public void setSwipeBackOnlyEdge(boolean swipeBackOnlyEdge) {
+        this.mSwipeBackOnlyEdge = swipeBackOnlyEdge;
+    }
+
+    public boolean isSwiping() {
+        return mSwiping;
+    }
+
+    public void setSwipeBackListener(SwipeBackListener swipeBackListener) {
+        this.mSwipeBackListener = swipeBackListener;
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        if (!isSwipeBackEnable()) {
+            super.onLayout(changed, l, t, r, b);
+            return;
+        }
+        for (int i = 0; i < getChildCount(); i++) {
+            final View child = getChildAt(i);
+            int left = getPaddingLeft() + mLeftOffset;
+            int top = getPaddingTop() + mTopOffset;
+            int right = left + child.getMeasuredWidth();
+            int bottom = top + child.getMeasuredHeight();
+            child.layout(left, top, right, bottom);
+            if (changed) {
+                mWidth = getWidth();
+                mHeight = getHeight();
+            }
+        }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        if (isSwipeBackEnable()) {
+            canvas.drawARGB(mMaskAlpha - (int) (mMaskAlpha * mFraction), 0, 0, 0);
+        }
+    }
+
+    @Override
+    protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+        if (!isSwipeBackEnable()) {
+            return super.drawChild(canvas, child, drawingTime);
+        }
+        boolean ret = super.drawChild(canvas, child, drawingTime);
+        if (child == getChildAt(0)) {
+            drawShadow(canvas, child);
+        }
+        return ret;
+    }
+
+    private void drawShadow(Canvas canvas, View child) {
+        final Rect childRect = mShadowRect;
+        child.getHitRect(childRect);
+        if (mShadowEnable) {
+            final Drawable shadow = getNonNullShadowDrawable();
+            if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
+                shadow.setBounds(childRect.left - shadow.getIntrinsicWidth(), childRect.top, childRect.left, childRect.bottom);
+            } else if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
+                shadow.setBounds(childRect.left, childRect.top, childRect.left, childRect.bottom);
+            } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
+                shadow.setBounds(childRect.left, childRect.top - shadow.getIntrinsicHeight(), childRect.left, childRect.bottom);
+            } else if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
+                shadow.setBounds(childRect.left, childRect.top, childRect.left, childRect.bottom);
+            }
+            mShadowDrawable.setAlpha((int) ((1 - mFraction) * 255));
+            mShadowDrawable.draw(canvas);
+        }
+    }
+
+    private boolean mTouchInnerScrollView = false;
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if (!isSwipeBackEnable()) {
+            return false;
+        }
+        switch (MotionEventCompat.getActionMasked(ev)) {
             case MotionEvent.ACTION_DOWN:
                 mDownX = ev.getRawX();
                 mDownY = ev.getRawY();
-                if (mSwipeFraction == 0) {
-                    mDragHelper.abort();
-                    mScroller.abortAnimation();
-                    mUsingNested = false;
-                    mCurrSwipeDirection = 0;
+                mInnerScrollViews.clear();
+                mInnerScrollViews.addAll(SwipeBackCompat.findAllScrollViews2(this));
+                mTouchInnerScrollView = SwipeBackCompat.contains(mInnerScrollViews, mDownX, mDownY) != null;
+                break;
+            case MotionEvent.ACTION_MOVE:
+                if (mInnerScrollViews != null && mTouchInnerScrollView) {
+                    float distanceX = Math.abs(ev.getRawX() - mDownX);
+                    float distanceY = Math.abs(ev.getRawY() - mDownY);
+                    if (mSwipeBackDirection == SwipeBackDirection.LEFT || mSwipeBackDirection == SwipeBackDirection.RIGHT) {
+                        if (distanceY > mTouchSlop && distanceY > distanceX) {
+                            return super.onInterceptTouchEvent(ev);
+                        }
+                    } else if (mSwipeBackDirection == SwipeBackDirection.TOP || mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
+                        if (distanceX > mTouchSlop && distanceX > distanceY) {
+                            return super.onInterceptTouchEvent(ev);
+                        }
+                    }
                 }
                 break;
             default:
                 break;
         }
-        if (mUsingNested) {
-            mHandleTouchEvent = false;
-            return super.onInterceptTouchEvent(ev);
-        }
-        boolean shouldIntercept = mDragHelper.shouldInterceptTouchEvent(ev);
-        mHandleTouchEvent = shouldIntercept;
-        return shouldIntercept;
+        boolean handled = mDragHelper.shouldInterceptTouchEvent(ev);
+        return handled ? handled : super.onInterceptTouchEvent(ev);
     }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public boolean onTouchEvent(@NonNull MotionEvent ev) {
-        if (!canSwipe()) {
-            return super.onTouchEvent(ev);
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!isSwipeBackEnable()) {
+            return false;
         }
-        if (mUsingNested) {
-            return super.onTouchEvent(ev);
-        }
-        if (mHandleTouchEvent) {
-            mDragHelper.processTouchEvent(ev);
-        }
-        return mHandleTouchEvent;
+        mDragHelper.processTouchEvent(event);
+        return true;
     }
 
     @Override
     public void computeScroll() {
-        if (!canSwipe()) {
-            return;
-        }
-        if (mUsingNested) {
-            if (mScroller.computeScrollOffset()) {
-                scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
-                invalidate();
-            }
-        } else {
-            if (mDragHelper.continueSettling(true)) {
-                invalidate();
-            }
+        if (mDragHelper.continueSettling(true)) {
+            ViewCompat.postInvalidateOnAnimation(this);
         }
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (getChildCount() != 1) {
-            throw new IllegalStateException("只能设置一个子View");
-        }
-        mSwipeView = getChildAt(0);
-        mLeft = mSwipeView.getLeft();
-        mTop = mSwipeView.getTop();
-        mRight = mSwipeView.getRight();
-        mBottom = mSwipeView.getBottom();
-        if (mInnerScrollViews.isEmpty()) {
-            mInnerScrollViews.addAll(DragCompat.findAllScrollViews(this));
-        }
-    }
-
-    private int getSwipeX() {
-        return mSwipeView.getLeft() - mLeft;
-    }
-
-    private int getSwipeY() {
-        return mSwipeView.getTop() - mTop;
-    }
-
-    @Override
-    public void scrollBy(int x, int y) {
-        swipeBy(-x, -y);
-    }
-
-    @Override
-    public void scrollTo(int x, int y) {
-        swipeTo(-x, -y);
-    }
-
-    private void swipeBy(int x, int y) {
-        swipeTo(getSwipeX() + x, getSwipeY() + y);
-    }
-
-    private void swipeTo(int x, int y) {
-        int realx = x;
-        int realy = y;
-        switch (mCurrSwipeDirection) {
-            case DIRECTION_LEFT:
-                realx = Utils.intRange(x, -calcViewLeftRange(mSwipeView), 0);
-                break;
-            case DIRECTION_RIGHT:
-                realx = Utils.intRange(x, 0, calcViewRightRange(mSwipeView));
-                break;
-            case DIRECTION_TOP:
-                realy = Utils.intRange(y, -calcViewTopRange(mSwipeView), 0);
-                break;
-            case DIRECTION_BOTTOM:
-                realy = Utils.intRange(y, 0, calcViewBottomRange(mSwipeView));
-                break;
-            default:
-                break;
-        }
-        updateSwipeViewLayout(realx, realy);
-        invalidate();
-        onSwipeChanged();
-    }
-
-    private void updateSwipeViewLayout(int offx, int offy) {
-        mSwipeView.setLeft(mLeft + offx);
-        mSwipeView.setRight(mRight + offx);
-        mSwipeView.setTop(mTop + offy);
-        mSwipeView.setBottom(mBottom + offy);
-    }
-
-    private void onSwipeChanged() {
-        handleSwipeFractionChange();
-    }
-
-    @FloatRange(from = 0F, to = 1F)
-    private float calcSwipeFraction() {
-        float f = 0;
-        switch (mCurrSwipeDirection) {
-            case DIRECTION_LEFT:
-                f = (float) Math.abs(getSwipeX()) / (float) calcViewLeftRange(mSwipeView);
-                break;
-            case DIRECTION_RIGHT:
-                f = (float) Math.abs(getSwipeX()) / (float) calcViewRightRange(mSwipeView);
-                break;
-            case DIRECTION_TOP:
-                f = (float) Math.abs(getSwipeY()) / (float) calcViewTopRange(mSwipeView);
-                break;
-            case DIRECTION_BOTTOM:
-                f = (float) Math.abs(getSwipeY()) / (float) calcViewBottomRange(mSwipeView);
-                break;
-            default:
-                break;
-        }
-        return Utils.floatRange01(f);
-    }
-
-    private void refreshFraction() {
-        mSwipeFraction = calcSwipeFraction();
-    }
-
-    private void handleSwipeFractionChange() {
-        refreshFraction();
-        onSwiping();
-        if (mSwipeFraction == 0) {
-            mCurrSwipeDirection = 0;
-        } else if (mSwipeFraction == 1) {
-            onSwipeEnd();
-            mCurrSwipeDirection = 0;
-        }
-    }
-
-    private void onSwipeStart() {
-        if (mSwipeFraction == 0) {
-            if (mOnSwipeListener != null) {
-                mOnSwipeListener.onStart();
+    private boolean isSwipeEnabled() {
+        if (mSwipeBackOnlyEdge) {
+            switch (mSwipeBackDirection) {
+                case SwipeBackDirection.LEFT:
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT);
+                case SwipeBackDirection.TOP:
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP);
+                case SwipeBackDirection.RIGHT:
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT);
+                case SwipeBackDirection.BOTTOM:
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM);
+                case SwipeBackDirection.NONE:
+                    break;
             }
         }
+        return true;
     }
 
-    private void onSwiping() {
-        if (mOnSwipeListener != null) {
-            mOnSwipeListener.onSwiping(mCurrSwipeDirection, mSwipeFraction);
-        }
-    }
-
-    private void onSwipeEnd() {
-        if (mOnSwipeListener != null) {
-            mOnSwipeListener.onEnd(mCurrSwipeDirection);
-        }
-    }
-
-    private int calcViewCurrRange(@NonNull View view) {
-        int range = 0;
-        switch (mCurrSwipeDirection) {
-            default:
-                break;
-            case DIRECTION_LEFT:
-                range = calcViewLeftRange(mSwipeView);
-                break;
-            case DIRECTION_RIGHT:
-                range = calcViewRightRange(mSwipeView);
-                break;
-            case DIRECTION_TOP:
-                range = calcViewTopRange(mSwipeView);
-                break;
-            case DIRECTION_BOTTOM:
-                range = calcViewBottomRange(mSwipeView);
+    private boolean backJudgeBySpeed(float xvel, float yvel) {
+        switch (mSwipeBackDirection) {
+            case SwipeBackDirection.LEFT:
+                return xvel > mSwipeBackVelocity;
+            case SwipeBackDirection.TOP:
+                return yvel > mSwipeBackVelocity;
+            case SwipeBackDirection.RIGHT:
+                return xvel < -mSwipeBackVelocity;
+            case SwipeBackDirection.BOTTOM:
+                return yvel < -mSwipeBackVelocity;
+            case SwipeBackDirection.NONE:
                 break;
         }
-        return range;
+        return false;
     }
 
-    private int calcViewLeftRange(@NonNull View view) {
-        return mLeft + view.getWidth();
-    }
-
-    private int calcViewRightRange(@NonNull View view) {
-        return getWidth() - mLeft;
-    }
-
-    private int calcViewTopRange(@NonNull View view) {
-        return mTop + view.getHeight();
-    }
-
-    private int calcViewBottomRange(@NonNull View view) {
-        return getHeight() - mTop;
-    }
-
-    @Override
-    public boolean onStartNestedScroll(@NonNull View child, @NonNull View target, int axes, int type) {
-        if ((ViewCompat.SCROLL_AXIS_VERTICAL & axes) == ViewCompat.SCROLL_AXIS_VERTICAL) {
-            if (canSwipeDirection(DIRECTION_TOP | DIRECTION_BOTTOM)) {
-                mUsingNested = ScrollCompat.canScrollUp(target) || ScrollCompat.canScrollDown(target);
-            }
-        } else if ((ViewCompat.SCROLL_AXIS_HORIZONTAL & axes) == ViewCompat.SCROLL_AXIS_HORIZONTAL) {
-            if (canSwipeDirection(DIRECTION_LEFT | DIRECTION_RIGHT)) {
-                mUsingNested = ScrollCompat.canScrollLeft(target) || ScrollCompat.canScrollRight(target);
-            }
-        } else {
-            mUsingNested = false;
-        }
-        return mUsingNested;
-    }
-
-    @Override
-    public void onNestedScrollAccepted(@NonNull View child, @NonNull View target, int axes, int type) {
-        mNestedHelper.onNestedScrollAccepted(child, target, axes, type);
-        if (type == ViewCompat.TYPE_TOUCH) {
-            mScroller.abortAnimation();
-            mVelocity = 0F;
-            onSwipeStart();
+    private void smoothScrollToX(int finalLeft) {
+        if (mDragHelper.settleCapturedViewAt(finalLeft, getPaddingTop())) {
+            ViewCompat.postInvalidateOnAnimation(this);
         }
     }
 
-    @Override
-    public void onNestedPreScroll(@NonNull View target, int dx, int dy, @NonNull int[] consumed, int type) {
-        if (!(target instanceof ScrollingView)) {
-            return;
+    private void smoothScrollToY(int finalTop) {
+        if (mDragHelper.settleCapturedViewAt(getPaddingLeft(), finalTop)) {
+            ViewCompat.postInvalidateOnAnimation(this);
         }
-        int scrollX = -getSwipeX();
-        int scrollY = -getSwipeY();
-        if (mCurrSwipeDirection == 0) {
-            if (Math.abs(dx) > Math.abs(dy)) {
-                if (dx > 0) {
-                    if (canSwipeDirection(DIRECTION_LEFT))
-                        mCurrSwipeDirection = DIRECTION_LEFT;
-                } else {
-                    if (canSwipeDirection(DIRECTION_RIGHT))
-                        mCurrSwipeDirection = DIRECTION_RIGHT;
-                }
+    }
+
+    @NonNull
+    private GradientDrawable getNonNullShadowDrawable() {
+        if (mShadowDrawable == null) {
+            int[] colors = new int[]{mShadowStartColor, Color.TRANSPARENT};
+            if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
+                mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, colors);
+                mShadowDrawable.setSize(mShadowSize, 0);
+            } else if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
+                mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, colors);
+                mShadowDrawable.setSize(mShadowSize, 0);
+            } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
+                mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, colors);
+                mShadowDrawable.setSize(0, mShadowSize);
+            } else if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
+                mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
+                mShadowDrawable.setSize(0, mShadowSize);
             } else {
-                if (dy > 0) {
-                    if (canSwipeDirection(DIRECTION_TOP))
-                        mCurrSwipeDirection = DIRECTION_TOP;
-                } else {
-                    if (canSwipeDirection(DIRECTION_BOTTOM))
-                        mCurrSwipeDirection = DIRECTION_BOTTOM;
-                }
+                mShadowDrawable = new GradientDrawable();
+                mShadowDrawable.setSize(0, 0);
             }
         }
-        switch (mCurrSwipeDirection) {
-            case DIRECTION_LEFT:
-                if (dx < 0) {
-                    if (scrollX > 0) {
-                        if (scrollX + dx < 0) {
-                            consumed[0] = -scrollX;
-                        } else {
-                            consumed[0] = dx;
-                        }
-                    } else {
-                        consumed[0] = 0;
-                    }
-                } else if (dx > 0) {
-                    if (scrollX > 0) {
-                        consumed[0] = dx;
-                    } else {
-                        if (ScrollCompat.canScrollRight(target)) {
-                            consumed[0] = 0;
-                        } else {
-                            if (type == ViewCompat.TYPE_NON_TOUCH) {
-                                if (scrollX + dx < 0) {
-                                    consumed[0] = -scrollX;
-                                } else {
-                                    consumed[0] = 0;
-                                }
-                            } else {
-                                consumed[0] = dx;
-                            }
-                        }
-                    }
-                } else {
-                    consumed[0] = 0;
-                }
-                consumed[1] = 0;
-                break;
-            case DIRECTION_RIGHT:
-                if (dx > 0) {
-                    if (scrollX < 0) {
-                        if (scrollX + dx > 0) {
-                            consumed[0] = -scrollX;
-                        } else {
-                            consumed[0] = dx;
-                        }
-                    } else {
-                        consumed[0] = 0;
-                    }
-                } else if (dx < 0) {
-                    if (scrollX < 0) {
-                        consumed[0] = dx;
-                    } else {
-                        if (ScrollCompat.canScrollLeft(target)) {
-                            consumed[0] = 0;
-                        } else {
-                            if (type == ViewCompat.TYPE_NON_TOUCH) {
-                                if (scrollX + dx > 0) {
-                                    consumed[0] = -scrollX;
-                                } else {
-                                    consumed[0] = 0;
-                                }
-                            } else {
-                                consumed[0] = dx;
-                            }
-                        }
-                    }
-                } else {
-                    consumed[0] = 0;
-                }
-                consumed[1] = 0;
-                break;
-            case DIRECTION_TOP:
-                consumed[0] = 0;
-                if (dy < 0) {
-                    if (scrollY > 0) {
-                        if (scrollY + dy < 0) {
-                            consumed[1] = -scrollY;
-                        } else {
-                            consumed[1] = dy;
-                        }
-                    } else {
-                        consumed[1] = 0;
-                    }
-                } else if (dy > 0) {
-                    if (scrollY > 0) {
-                        consumed[1] = dy;
-                    } else {
-                        if (ScrollCompat.canScrollDown(target)) {
-                            consumed[1] = 0;
-                        } else {
-                            if (type == ViewCompat.TYPE_NON_TOUCH) {
-                                if (scrollY + dy < 0) {
-                                    consumed[1] = -scrollY;
-                                } else {
-                                    consumed[1] = 0;
-                                }
-                            } else {
-                                consumed[1] = dy;
-                            }
-                        }
-                    }
-                } else {
-                    consumed[1] = 0;
-                }
-                break;
-            case DIRECTION_BOTTOM:
-                consumed[0] = 0;
-                if (dy > 0) {
-                    if (scrollY < 0) {
-                        if (scrollY + dy > 0) {
-                            consumed[1] = -scrollY;
-                        } else {
-                            consumed[1] = dy;
-                        }
-                    } else {
-                        consumed[1] = 0;
-                    }
-                } else if (dy < 0) {
-                    if (scrollY < 0) {
-                        consumed[1] = dy;
-                    } else {
-                        if (ScrollCompat.canScrollUp(target)) {
-                            consumed[1] = 0;
-                        } else {
-                            if (type == ViewCompat.TYPE_NON_TOUCH) {
-                                if (scrollY + dy > 0) {
-                                    consumed[1] = -scrollY;
-                                } else {
-                                    consumed[1] = 0;
-                                }
-                            } else {
-                                consumed[1] = dy;
-                            }
-                        }
-                    }
-                } else {
-                    consumed[1] = 0;
-                }
-                break;
-            default:
-                consumed[0] = 0;
-                consumed[1] = 0;
-                break;
-        }
-        if (consumed[0] != 0 || consumed[1] != 0) {
-            scrollBy(consumed[0], consumed[1]);
-        }
+        return mShadowDrawable;
     }
 
-    @Override
-    public void onNestedScroll(@NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type) {
-    }
-
-    @Override
-    public void onNestedScroll(@NonNull View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed, int type, @NonNull int[] consumed) {
-        int scrollX = -getSwipeX();
-        int scrollY = -getSwipeY();
-        switch (mCurrSwipeDirection) {
-            case DIRECTION_LEFT:
-                if (scrollY + dxUnconsumed < 0) {
-                    consumed[0] = -scrollX;
-                } else {
-                    if (type == ViewCompat.TYPE_NON_TOUCH) {
-                        consumed[0] = 0;
-                    } else {
-                        consumed[0] = dxUnconsumed;
-                    }
-                }
-                consumed[1] = 0;
-                break;
-            case DIRECTION_RIGHT:
-                if (scrollX + dxUnconsumed > 0) {
-                    consumed[0] = -scrollX;
-                } else {
-                    if (type == ViewCompat.TYPE_NON_TOUCH) {
-                        consumed[0] = 0;
-                    } else {
-                        consumed[0] = dxUnconsumed;
-                    }
-                }
-                consumed[1] = 0;
-                break;
-            case DIRECTION_TOP:
-                consumed[0] = 0;
-                if (scrollY + dyUnconsumed < 0) {
-                    consumed[1] = -scrollY;
-                } else {
-                    if (type == ViewCompat.TYPE_NON_TOUCH) {
-                        consumed[1] = 0;
-                    } else {
-                        consumed[1] = dyUnconsumed;
-                    }
-                }
-                break;
-            case DIRECTION_BOTTOM:
-                consumed[0] = 0;
-                if (scrollY + dyUnconsumed > 0) {
-                    consumed[1] = -scrollY;
-                } else {
-                    if (type == ViewCompat.TYPE_NON_TOUCH) {
-                        consumed[1] = 0;
-                    } else {
-                        consumed[1] = dyUnconsumed;
-                    }
-                }
-                break;
-            default:
-                consumed[0] = 0;
-                consumed[1] = 0;
-                break;
-        }
-        if (consumed[0] != 0 || consumed[1] != 0) {
-            scrollBy(consumed[0], consumed[1]);
-        }
-    }
-
-    @Override
-    public boolean onNestedPreFling(@NonNull View target, float velocityX, float velocityY) {
-        switch (mCurrSwipeDirection) {
-            default:
-                mVelocity = 0F;
-                break;
-            case DIRECTION_LEFT:
-            case DIRECTION_RIGHT:
-                mVelocity = velocityX;
-                break;
-            case DIRECTION_TOP:
-            case DIRECTION_BOTTOM:
-                mVelocity = velocityY;
-                break;
-        }
-        return super.onNestedPreFling(target, velocityX, velocityY);
-    }
-
-    @Override
-    public boolean onNestedFling(@NonNull View target, float velocityX, float velocityY, boolean consumed) {
-        return super.onNestedFling(target, velocityX, velocityY, consumed);
-    }
-
-    @Override
-    public void onStopNestedScroll(@NonNull View target, int type) {
-        mNestedHelper.onStopNestedScroll(target, type);
-        if (type == ViewCompat.TYPE_TOUCH) {
-            int fromx = getSwipeX();
-            int fromy = getSwipeY();
-            int endx = 0;
-            int endy = 0;
-            if (judgeDismiss(-mVelocity)) {
-                switch (mCurrSwipeDirection) {
-                    default:
-                        break;
-                    case DIRECTION_LEFT:
-                        endx = -calcViewLeftRange(mSwipeView);
-                        break;
-                    case DIRECTION_RIGHT:
-                        endx = calcViewRightRange(mSwipeView);
-                        break;
-                    case DIRECTION_TOP:
-                        endy = -calcViewTopRange(mSwipeView);
-                        break;
-                    case DIRECTION_BOTTOM:
-                        endy = calcViewBottomRange(mSwipeView);
-                        break;
-                }
-            }
-            int dx = endx - fromx;
-            int dy = endy - fromy;
-            int d = Math.max(Math.abs(dx), Math.abs(dy));
-            int duration = computeSettleDuration(d, (int) mVelocity);
-            mScroller.abortAnimation();
-            mScroller.startScroll(-fromx, -fromy, -dx, -dy, duration);
-            invalidate();
-        }
-    }
-
-    @Override
-    public int getNestedScrollAxes() {
-        return mNestedHelper.getNestedScrollAxes();
-    }
-
-    private int computeSettleDuration(int d, int v) {
-        v = clampMag(v, (int) mMinVelocity, (int) mMaxVelocity);
-        int range = calcViewCurrRange(mSwipeView);
-        return computeAxisDuration(d, v, range);
-    }
-
-    private int clampMag(int value, int absMin, int absMax) {
-        final int absValue = Math.abs(value);
-        if (absValue < absMin) return 0;
-        if (absValue > absMax) return value > 0 ? absMax : -absMax;
-        return value;
-    }
-
-    private int computeAxisDuration(int delta, int velocity, int motionRange) {
-        if (delta == 0) {
-            return 0;
-        }
-        final int width = getWidth();
-        final int halfWidth = width / 2;
-        final float distanceRatio = Math.min(1f, (float) Math.abs(delta) / width);
-        final float distance = halfWidth + halfWidth
-                * distanceInfluenceForSnapDuration(distanceRatio);
-        int duration;
-        velocity = Math.abs(velocity);
-        if (velocity > 0) {
-            duration = 4 * Math.round(1000 * Math.abs(distance / velocity));
-        } else {
-            final float range = (float) Math.abs(delta) / motionRange;
-            duration = (int) ((range + 1) * 256);
-        }
-        return Math.min(duration, 350);
-    }
-
-    private float distanceInfluenceForSnapDuration(float f) {
-        f -= 0.5f;
-        f *= 0.3f * (float) Math.PI / 2.0f;
-        return (float) Math.sin(f);
-    }
-
-    private boolean judgeDismiss(float vel) {
-        boolean isDismiss = false;
-        float velocityLimit = 2000F;
-        float dismissFactor = 0.5F;
-        switch (mCurrSwipeDirection) {
-            case DIRECTION_LEFT:
-                isDismiss = getSwipeX() < 0 && vel < -velocityLimit;
-                break;
-            case DIRECTION_RIGHT:
-                isDismiss = getSwipeX() > 0 && vel > velocityLimit;
-                break;
-            case DIRECTION_TOP:
-                isDismiss = getSwipeY() < 0 && vel < -velocityLimit;
-                break;
-            case DIRECTION_BOTTOM:
-                isDismiss = getSwipeY() > 0 && vel > velocityLimit;
-                break;
-            default:
-                break;
-        }
-        if (isDismiss) {
-            return true;
-        }
-        isDismiss = mSwipeFraction >= dismissFactor;
-        return isDismiss;
-    }
-
-    private class DragCallback extends ViewDragHelper.Callback {
-        private boolean mBeanDragged = false;
-
+    private class DragHelperCallback extends ViewDragHelper.Callback {
         @Override
         public boolean tryCaptureView(@NonNull View child, int pointerId) {
-            return canSwipe();
-        }
-
-        @Override
-        public int getViewHorizontalDragRange(@NonNull View child) {
-            if (canSwipeDirection(DIRECTION_LEFT)) {
-                return calcViewLeftRange(child);
-            } else if (canSwipeDirection(DIRECTION_RIGHT)) {
-                return calcViewRightRange(child);
-            } else {
-                return 0;
-            }
-        }
-
-        @Override
-        public int getViewVerticalDragRange(@NonNull View child) {
-            if (canSwipeDirection(DIRECTION_TOP)) {
-                return calcViewTopRange(child);
-            } else if (canSwipeDirection(DIRECTION_BOTTOM)) {
-                return calcViewBottomRange(child);
-            } else {
-                return 0;
-            }
+            return isSwipeBackEnable();
         }
 
         @Override
         public void onViewCaptured(@NonNull View capturedChild, int activePointerId) {
             super.onViewCaptured(capturedChild, activePointerId);
-            mBeanDragged = false;
             onSwipeStart();
         }
 
         @Override
         public int clampViewPositionHorizontal(@NonNull View child, int left, int dx) {
-            if (mCurrSwipeDirection == 0) {
-                boolean swipedLeft = mBeanDragged ? dx < 0 : dx < -mTouchSlop;
-                boolean swipedRight = mBeanDragged ? dx > 0 : dx > mTouchSlop;
-                if (canSwipeDirection(DIRECTION_LEFT) && swipedLeft)
-                    mCurrSwipeDirection = DIRECTION_LEFT;
-                if (canSwipeDirection(DIRECTION_RIGHT) && swipedRight)
-                    mCurrSwipeDirection = DIRECTION_RIGHT;
+            mLeftOffset = getPaddingLeft();
+            if (isSwipeEnabled()) {
+                if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
+                    if (!SwipeBackCompat.canViewScrollLeft(mInnerScrollViews, mDownX, mDownY, false)) {
+                        mLeftOffset = Math.min(Math.max(left, getPaddingLeft()), mWidth);
+                    } else {
+                        if (mSwipeBackForceEdge && mTouchedEdge == ViewDragHelper.EDGE_LEFT) {
+                            mLeftOffset = Math.min(Math.max(left, getPaddingLeft()), mWidth);
+                        }
+                    }
+                } else if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
+                    if (!SwipeBackCompat.canViewScrollRight(mInnerScrollViews, mDownX, mDownY, false)) {
+                        mLeftOffset = Math.min(Math.max(left, -mWidth), getPaddingRight());
+                    } else {
+                        if (mSwipeBackForceEdge && mTouchedEdge == ViewDragHelper.EDGE_RIGHT) {
+                            mLeftOffset = Math.min(Math.max(left, -mWidth), getPaddingRight());
+                        }
+                    }
+                }
             }
-            if (mCurrSwipeDirection == 0) {
-                mBeanDragged = true;
-            }
-            switch (mCurrSwipeDirection) {
-                case DIRECTION_LEFT:
-                    if (DragCompat.canViewScrollRight(mInnerScrollViews, mDownX, mDownY, false)) {
-                        return mLeft;
-                    }
-                    if (left > mLeft) {
-                        return mLeft;
-                    }
-                    final int l = mLeft + child.getWidth();
-                    return Math.max(left, -l);
-                case DIRECTION_RIGHT:
-                    if (DragCompat.canViewScrollLeft(mInnerScrollViews, mDownX, mDownY, false)) {
-                        return mLeft;
-                    }
-                    if (left > getWidth()) {
-                        return getWidth();
-                    }
-                    return Math.max(left, mLeft);
-                case DIRECTION_TOP:
-                case DIRECTION_BOTTOM:
-                default:
-                    return mLeft;
-            }
+            Log.i(TAG, "clampViewPositionHorizontal -> " + "mLeftOffset=" + mLeftOffset);
+            return mLeftOffset;
         }
 
         @Override
         public int clampViewPositionVertical(@NonNull View child, int top, int dy) {
-            if (mCurrSwipeDirection == 0) {
-                boolean swipedTop = mBeanDragged ? dy < 0 : dy < -mTouchSlop;
-                boolean swipedBottom = mBeanDragged ? dy > 0 : dy > mTouchSlop;
-                if (canSwipeDirection(DIRECTION_TOP) && swipedTop)
-                    mCurrSwipeDirection = DIRECTION_TOP;
-                if (canSwipeDirection(DIRECTION_BOTTOM) && swipedBottom)
-                    mCurrSwipeDirection = DIRECTION_BOTTOM;
+            mTopOffset = getPaddingTop();
+            if (isSwipeEnabled()) {
+                if (mSwipeBackDirection == SwipeBackDirection.TOP) {
+                    if (!SwipeBackCompat.canViewScrollUp(mInnerScrollViews, mDownX, mDownY, false)) {
+                        mTopOffset = Math.min(Math.max(top, getPaddingTop()), mHeight);
+                    } else {
+                        if (mSwipeBackForceEdge && mTouchedEdge == ViewDragHelper.EDGE_TOP) {
+                            mTopOffset = Math.min(Math.max(top, getPaddingTop()), mHeight);
+                        }
+                    }
+                } else if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
+                    if (!SwipeBackCompat.canViewScrollDown(mInnerScrollViews, mDownX, mDownY, false)) {
+                        mTopOffset = Math.min(Math.max(top, -mHeight), getPaddingBottom());
+                    } else {
+                        if (mSwipeBackForceEdge && mTouchedEdge == ViewDragHelper.EDGE_BOTTOM) {
+                            mTopOffset = Math.min(Math.max(top, -mHeight), getPaddingBottom());
+                        }
+                    }
+                }
             }
-            if (mCurrSwipeDirection == 0) {
-                mBeanDragged = true;
-            }
-            switch (mCurrSwipeDirection) {
-                case DIRECTION_TOP:
-                    if (DragCompat.canViewScrollDown(mInnerScrollViews, mDownX, mDownY, false)) {
-                        return mTop;
-                    }
-                    if (top > mTop) {
-                        return mTop;
-                    }
-                    final int t = mTop + child.getHeight();
-                    return Math.max(top, -t);
-                case DIRECTION_BOTTOM:
-                    if (DragCompat.canViewScrollUp(mInnerScrollViews, mDownX, mDownY, false)) {
-                        return mTop;
-                    }
-                    if (top > getHeight()) {
-                        return getHeight();
-                    }
-                    return Math.max(top, mTop);
-                case DIRECTION_LEFT:
-                case DIRECTION_RIGHT:
-                default:
-                    return mTop;
-            }
+            Log.i(TAG, "clampViewPositionVertical -> " + "mTopOffset=" + mTopOffset);
+            return mTopOffset;
         }
 
         @Override
         public void onViewPositionChanged(@NonNull View changedView, int left, int top, int dx, int dy) {
             super.onViewPositionChanged(changedView, left, top, dx, dy);
-            handleSwipeFractionChange();
+            left = Math.abs(left);
+            top = Math.abs(top);
+            switch (mSwipeBackDirection) {
+                case SwipeBackDirection.LEFT:
+                case SwipeBackDirection.RIGHT:
+                    mFraction = 1.0f * left / mWidth;
+                    break;
+                case SwipeBackDirection.TOP:
+                case SwipeBackDirection.BOTTOM:
+                    mFraction = 1.0f * top / mHeight;
+                    break;
+                case SwipeBackDirection.NONE:
+                    break;
+            }
+            Log.i(TAG, "onViewPositionChanged -> " + "mFraction=" + mFraction);
+            onSwiping();
         }
 
         @Override
         public void onViewReleased(@NonNull View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
-            mBeanDragged = false;
-            float vel = 0F;
-            switch (mCurrSwipeDirection) {
-                case DIRECTION_LEFT:
-                case DIRECTION_RIGHT:
-                    vel = xvel;
-                    break;
-                case DIRECTION_TOP:
-                case DIRECTION_BOTTOM:
-                    vel = yvel;
-                    break;
-                default:
-                    break;
+            mLeftOffset = mTopOffset = 0;
+            if (!isSwipeEnabled()) {
+                mTouchedEdge = ViewDragHelper.INVALID_POINTER;
+                return;
             }
-            int l = mLeft;
-            int t = mTop;
-            if (judgeDismiss(vel)) {
-                switch (mCurrSwipeDirection) {
-                    case DIRECTION_LEFT:
-                        l = -(mLeft + releasedChild.getWidth());
+            mTouchedEdge = ViewDragHelper.INVALID_POINTER;
+
+            boolean isBackToEnd = backJudgeBySpeed(xvel, yvel) || mFraction >= mSwipeBackFactor;
+            if (isBackToEnd) {
+                switch (mSwipeBackDirection) {
+                    case SwipeBackDirection.LEFT:
+                        smoothScrollToX(mWidth);
                         break;
-                    case DIRECTION_RIGHT:
-                        l = getWidth();
+                    case SwipeBackDirection.TOP:
+                        smoothScrollToY(mHeight);
                         break;
-                    case DIRECTION_TOP:
-                        t = -(mTop + releasedChild.getHeight());
+                    case SwipeBackDirection.RIGHT:
+                        smoothScrollToX(-mWidth);
                         break;
-                    case DIRECTION_BOTTOM:
-                        t = getHeight();
+                    case SwipeBackDirection.BOTTOM:
+                        smoothScrollToY(-mHeight);
                         break;
-                    default:
+                    case SwipeBackDirection.NONE:
+                        break;
+                }
+            } else {
+                switch (mSwipeBackDirection) {
+                    case SwipeBackDirection.LEFT:
+                    case SwipeBackDirection.RIGHT:
+                        smoothScrollToX(getPaddingLeft());
+                        break;
+                    case SwipeBackDirection.BOTTOM:
+                    case SwipeBackDirection.TOP:
+                        smoothScrollToY(getPaddingTop());
+                        break;
+                    case SwipeBackDirection.NONE:
                         break;
                 }
             }
-            mDragHelper.settleCapturedViewAt(l, t);
-            invalidate();
+            Log.i(TAG, "onViewReleased -> ");
+        }
+
+        @Override
+        public void onViewDragStateChanged(int state) {
+            super.onViewDragStateChanged(state);
+            if (state == ViewDragHelper.STATE_IDLE) {
+                if (mFraction == 0) {
+                    onSwipeEnd();
+                } else if (mFraction == 1) {
+                    onSwipeEnd();
+                }
+            }
+            Log.i(TAG, "onViewDragStateChanged -> " + "state=" + state);
+        }
+
+        @Override
+        public int getViewHorizontalDragRange(@NonNull View child) {
+            Log.i(TAG, "getViewHorizontalDragRange -> " + "mWidth" + mWidth);
+            return mWidth;
+        }
+
+        @Override
+        public int getViewVerticalDragRange(@NonNull View child) {
+            Log.i(TAG, "getViewVerticalDragRange -> " + "mHeight" + mHeight);
+            return mHeight;
+        }
+
+        @Override
+        public void onEdgeTouched(int edgeFlags, int pointerId) {
+            super.onEdgeTouched(edgeFlags, pointerId);
+            //边缘Touch状态 开始滑动
+            mTouchedEdge = edgeFlags;
+            Log.i(TAG, "onEdgeTouched -> " + "mTouchedEdge" + mTouchedEdge);
+        }
+
+        @Override
+        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            super.onEdgeDragStarted(edgeFlags, pointerId);
+            Log.i(TAG, "onEdgeDragStarted -> " + "mTouchedEdge" + mTouchedEdge);
         }
     }
 
-    public interface OnSwipeListener {
-        /**
-         * 开始滑动
-         */
-        void onStart();
+    protected void onSwipeStart() {
+        mSwiping = true;
+        if (mSwipeBackListener != null) {
+            mSwipeBackListener.onSwipeStart(mFraction, mSwipeBackDirection);
+        }
+    }
 
-        /**
-         * 滑动中
-         *
-         * @param direction 滑动关闭的方向
-         * @param fraction  滑动比例 0为开始，1为结束
-         */
-        void onSwiping(int direction,
-                       @FloatRange(from = 0F, to = 1F) float fraction);
+    protected void onSwiping() {
+        if (mSwipeBackListener != null) {
+            mSwipeBackListener.onSwiping(mFraction, mSwipeBackDirection);
+        }
+    }
 
-        /**
-         * 滑动结束
-         *
-         * @param direction 滑动关闭的方向，0表示复位
-         */
-        void onEnd(int direction);
+    protected void onSwipeEnd() {
+        mSwiping = false;
+        if (mSwipeBackListener != null) {
+            mSwipeBackListener.onSwipeEnd(mFraction, mSwipeBackDirection);
+        }
+    }
+
+    public interface SwipeBackListener {
+        void onSwipeStart(float swipeFraction, @SwipeBackDirection int swipeDirection);
+        void onSwiping(float swipeFraction, @SwipeBackDirection int swipeDirection);
+        void onSwipeEnd(float swipeFraction, @SwipeBackDirection int swipeDirection);
     }
 }
