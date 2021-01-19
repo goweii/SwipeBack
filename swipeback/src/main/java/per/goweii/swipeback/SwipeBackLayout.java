@@ -52,6 +52,26 @@ public class SwipeBackLayout extends FrameLayout {
         mDragHelper.setEdgeTrackingEnabled(mSwipeBackDirection);
     }
 
+    public boolean canSwipeBack() {
+        if (mSwipeBackOnlyEdge) {
+            switch (mSwipeBackDirection) {
+                case SwipeBackDirection.BOTTOM:
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP);
+                case SwipeBackDirection.LEFT:
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT);
+                case SwipeBackDirection.RIGHT:
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT);
+                case SwipeBackDirection.TOP:
+                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM);
+                case SwipeBackDirection.NONE:
+                    return false;
+            }
+            return false;
+        } else {
+            return isSwipeBackEnable();
+        }
+    }
+
     public boolean isSwipeBackEnable() {
         return mSwipeBackDirection != SwipeBackDirection.NONE;
     }
@@ -306,7 +326,7 @@ public class SwipeBackLayout extends FrameLayout {
     private class DragHelperCallback extends ViewDragHelper.Callback {
         @Override
         public boolean tryCaptureView(@NonNull View child, int pointerId) {
-            return isSwipeBackEnable();
+            return canSwipeBack();
         }
 
         @Override
@@ -427,6 +447,7 @@ public class SwipeBackLayout extends FrameLayout {
         public void onViewReleased(@NonNull View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
             if (!isSwipeBackEnable()) return;
+            if (!canSwipeBack()) return;
             boolean isBackToEnd = shouldBackBySpeed(xvel, yvel) || mFraction >= mSwipeBackFactor;
             if (isBackToEnd) {
                 switch (mSwipeBackDirection) {
