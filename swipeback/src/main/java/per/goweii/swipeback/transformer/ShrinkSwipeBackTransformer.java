@@ -30,9 +30,7 @@ public class ShrinkSwipeBackTransformer implements SwipeBackTransformer {
             @FloatRange(from = 0.0, to = 1.0) float fraction,
             @SwipeBackDirection int swipeDirection
     ) {
-        if (previousView == null) {
-            return;
-        }
+        if (previousView == null) return;
         float scale = mScale + (1 - mScale) * fraction;
         previousView.setScaleX(scale);
         previousView.setScaleY(scale);

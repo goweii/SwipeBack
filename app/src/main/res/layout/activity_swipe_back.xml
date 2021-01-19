@@ -57,37 +57,44 @@
             android:layout_height="wrap_content"
             android:text="滑动返回动画效果" />
 
-        <LinearLayout
+        <RadioGroup
+            android:id="@+id/rg_direction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:orientation="horizontal">
 
-            <CheckBox
+            <RadioButton
                 android:id="@+id/cb_left"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="左滑" />
-
-            <CheckBox
-                android:id="@+id/cb_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="右滑" />
 
-            <CheckBox
-                android:id="@+id/cb_top"
+            <RadioButton
+                android:id="@+id/cb_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="上滑" />
+                android:text="左滑" />
 
-            <CheckBox
-                android:id="@+id/cb_bottom"
+            <RadioButton
+                android:id="@+id/cb_top"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="下滑" />
 
-        </LinearLayout>
+            <RadioButton
+                android:id="@+id/cb_bottom"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="上滑" />
+
+            <RadioButton
+                android:id="@+id/cb_none"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="无" />
+
+        </RadioGroup>
 
         <androidx.appcompat.widget.SwitchCompat
             android:id="@+id/sw_only_edge"

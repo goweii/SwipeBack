@@ -28,24 +28,27 @@ public class ParallaxSwipeBackTransformer implements SwipeBackTransformer {
             @NonNull View currentView,
             @Nullable View previousView,
             @FloatRange(from = 0.0, to = 1.0) float fraction,
-            @SwipeBackDirection int swipeDirection
+            @SwipeBackDirection int direction
     ) {
         if (previousView == null) {
             return;
         }
-        int maxTranslation = previousView.getWidth();
-        if (swipeDirection == SwipeBackDirection.LEFT) {
+        if (direction == SwipeBackDirection.RIGHT) {
             float translation = previousView.getWidth() * mPercent * (1 - fraction);
-            previousView.setTranslationX(translation);
-        } else if (swipeDirection == SwipeBackDirection.RIGHT) {
-            float translation = (maxTranslation * mPercent) * (1 - fraction);
             previousView.setTranslationX(-translation);
-        } else if (swipeDirection == SwipeBackDirection.TOP) {
-            float translation = maxTranslation * mPercent * (1 - fraction);
-            previousView.setTranslationY(translation);
-        } else if (swipeDirection == SwipeBackDirection.BOTTOM) {
-            float translation = maxTranslation * mPercent * (1 - fraction);
+            previousView.setTranslationY(0);
+        } else if (direction == SwipeBackDirection.LEFT) {
+            float translation = (previousView.getWidth() * mPercent) * (1 - fraction);
+            previousView.setTranslationX(translation);
+            previousView.setTranslationY(0);
+        } else if (direction == SwipeBackDirection.BOTTOM) {
+            float translation = previousView.getWidth() * mPercent * (1 - fraction);
             previousView.setTranslationY(-translation);
+            previousView.setTranslationX(0);
+        } else if (direction == SwipeBackDirection.TOP) {
+            float translation = previousView.getWidth() * mPercent * (1 - fraction);
+            previousView.setTranslationY(translation);
+            previousView.setTranslationX(0);
         }
         float alpha = mAlpha + (1 - mAlpha) * fraction;
         previousView.setAlpha(alpha);

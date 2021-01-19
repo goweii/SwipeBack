@@ -2,15 +2,11 @@ package per.goweii.swipeback;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.util.AttributeSet;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -19,8 +15,6 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.core.view.MotionEventCompat;
 import androidx.core.view.ViewCompat;
 import androidx.customview.widget.ViewDragHelper;
 
@@ -28,11 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SwipeBackLayout extends FrameLayout {
-
-    public static final String TAG = SwipeBackLayout.class.getSimpleName();
-
     private final ViewDragHelper mDragHelper;
-    private final int mTouchSlop;
     private final Rect mShadowRect = new Rect();
     private final List<View> mInnerScrollViews = new ArrayList<>(0);
 
@@ -40,11 +30,6 @@ public class SwipeBackLayout extends FrameLayout {
     private float mFraction = 0;
     private float mDownX = 0;
     private float mDownY = 0;
-    private int mWidth = 0;
-    private int mHeight = 0;
-    private int mLeftOffset = 0;
-    private int mTopOffset = 0;
-    private int mTouchedEdge = ViewDragHelper.INVALID_POINTER;
     private GradientDrawable mShadowDrawable = null;
 
     private boolean mShadowEnable = true;
@@ -65,7 +50,6 @@ public class SwipeBackLayout extends FrameLayout {
         setWillNotDraw(false);
         mDragHelper = ViewDragHelper.create(this, 1f, new DragHelperCallback());
         mDragHelper.setEdgeTrackingEnabled(mSwipeBackDirection);
-        mTouchSlop = mDragHelper.getTouchSlop();
     }
 
     public boolean isSwipeBackEnable() {
@@ -82,11 +66,12 @@ public class SwipeBackLayout extends FrameLayout {
 
     public void setSwipeBackFactor(@FloatRange(from = 0.0f, to = 1.0f) float swipeBackFactor) {
         if (swipeBackFactor > 1) {
-            swipeBackFactor = 1;
+            mSwipeBackFactor = 1;
         } else if (swipeBackFactor < 0) {
-            swipeBackFactor = 0;
+            mSwipeBackFactor = 0;
+        } else {
+            mSwipeBackFactor = swipeBackFactor;
         }
-        this.mSwipeBackFactor = swipeBackFactor;
     }
 
     public float getSwipeBackFactor() {
@@ -118,13 +103,37 @@ public class SwipeBackLayout extends FrameLayout {
         this.mMaskAlpha = maskAlpha;
     }
 
+    public void setMaskAlpha(@FloatRange(from = 0, to = 1) float maskAlpha) {
+        setMaskAlpha((int) (255 * maskAlpha));
+    }
+
     public int getMaskAlpha() {
         return mMaskAlpha;
     }
 
     public void setSwipeBackDirection(@SwipeBackDirection int direction) {
+        if (mSwipeBackDirection == direction) {
+            return;
+        }
         mSwipeBackDirection = direction;
-        mDragHelper.setEdgeTrackingEnabled(direction);
+        switch (direction) {
+            case SwipeBackDirection.BOTTOM:
+                mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_TOP);
+                break;
+            case SwipeBackDirection.LEFT:
+                mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_RIGHT);
+                break;
+            case SwipeBackDirection.RIGHT:
+                mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
+                break;
+            case SwipeBackDirection.TOP:
+                mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_BOTTOM);
+                break;
+            case SwipeBackDirection.NONE:
+                mDragHelper.setEdgeTrackingEnabled(0);
+                break;
+        }
+        mShadowDrawable = null;
     }
 
     public int getSwipeBackDirection() {
@@ -156,23 +165,44 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        beforeSwipe();
         if (!isSwipeBackEnable()) {
-            super.onLayout(changed, l, t, r, b);
-            return;
+            return false;
         }
-        for (int i = 0; i < getChildCount(); i++) {
-            final View child = getChildAt(i);
-            int left = getPaddingLeft() + mLeftOffset;
-            int top = getPaddingTop() + mTopOffset;
-            int right = left + child.getMeasuredWidth();
-            int bottom = top + child.getMeasuredHeight();
-            child.layout(left, top, right, bottom);
-            if (changed) {
-                mWidth = getWidth();
-                mHeight = getHeight();
-            }
+        switch (ev.getActionMasked()) {
+            case MotionEvent.ACTION_DOWN:
+                mDownX = ev.getRawX();
+                mDownY = ev.getRawY();
+                break;
+            default:
+                break;
         }
+        boolean handled = mDragHelper.shouldInterceptTouchEvent(ev);
+        return handled ? handled : super.onInterceptTouchEvent(ev);
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!isSwipeBackEnable()) {
+            return false;
+        }
+        mDragHelper.processTouchEvent(event);
+        return true;
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        if (mInnerScrollViews.isEmpty()) {
+            mInnerScrollViews.addAll(SwipeBackCompat.findAllScrollViews2(this));
+        }
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+        super.onLayout(changed, l, t, r, b);
     }
 
     @Override
@@ -200,65 +230,18 @@ public class SwipeBackLayout extends FrameLayout {
         child.getHitRect(childRect);
         if (mShadowEnable) {
             final Drawable shadow = getNonNullShadowDrawable();
-            if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
+            if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
                 shadow.setBounds(childRect.left - shadow.getIntrinsicWidth(), childRect.top, childRect.left, childRect.bottom);
-            } else if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
+            } else if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
                 shadow.setBounds(childRect.left, childRect.top, childRect.left, childRect.bottom);
-            } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
-                shadow.setBounds(childRect.left, childRect.top - shadow.getIntrinsicHeight(), childRect.left, childRect.bottom);
             } else if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
+                shadow.setBounds(childRect.left, childRect.top - shadow.getIntrinsicHeight(), childRect.left, childRect.bottom);
+            } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
                 shadow.setBounds(childRect.left, childRect.top, childRect.left, childRect.bottom);
             }
             mShadowDrawable.setAlpha((int) ((1 - mFraction) * 255));
             mShadowDrawable.draw(canvas);
         }
-    }
-
-    private boolean mTouchInnerScrollView = false;
-
-    @Override
-    public boolean onInterceptTouchEvent(MotionEvent ev) {
-        if (!isSwipeBackEnable()) {
-            return false;
-        }
-        switch (MotionEventCompat.getActionMasked(ev)) {
-            case MotionEvent.ACTION_DOWN:
-                mDownX = ev.getRawX();
-                mDownY = ev.getRawY();
-                mInnerScrollViews.clear();
-                mInnerScrollViews.addAll(SwipeBackCompat.findAllScrollViews2(this));
-                mTouchInnerScrollView = SwipeBackCompat.contains(mInnerScrollViews, mDownX, mDownY) != null;
-                break;
-            case MotionEvent.ACTION_MOVE:
-                if (mInnerScrollViews != null && mTouchInnerScrollView) {
-                    float distanceX = Math.abs(ev.getRawX() - mDownX);
-                    float distanceY = Math.abs(ev.getRawY() - mDownY);
-                    if (mSwipeBackDirection == SwipeBackDirection.LEFT || mSwipeBackDirection == SwipeBackDirection.RIGHT) {
-                        if (distanceY > mTouchSlop && distanceY > distanceX) {
-                            return super.onInterceptTouchEvent(ev);
-                        }
-                    } else if (mSwipeBackDirection == SwipeBackDirection.TOP || mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
-                        if (distanceX > mTouchSlop && distanceX > distanceY) {
-                            return super.onInterceptTouchEvent(ev);
-                        }
-                    }
-                }
-                break;
-            default:
-                break;
-        }
-        boolean handled = mDragHelper.shouldInterceptTouchEvent(ev);
-        return handled ? handled : super.onInterceptTouchEvent(ev);
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        if (!isSwipeBackEnable()) {
-            return false;
-        }
-        mDragHelper.processTouchEvent(event);
-        return true;
     }
 
     @Override
@@ -268,33 +251,15 @@ public class SwipeBackLayout extends FrameLayout {
         }
     }
 
-    private boolean isSwipeEnabled() {
-        if (mSwipeBackOnlyEdge) {
-            switch (mSwipeBackDirection) {
-                case SwipeBackDirection.LEFT:
-                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT);
-                case SwipeBackDirection.TOP:
-                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP);
-                case SwipeBackDirection.RIGHT:
-                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT);
-                case SwipeBackDirection.BOTTOM:
-                    return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM);
-                case SwipeBackDirection.NONE:
-                    break;
-            }
-        }
-        return true;
-    }
-
-    private boolean backJudgeBySpeed(float xvel, float yvel) {
+    private boolean shouldBackBySpeed(float xvel, float yvel) {
         switch (mSwipeBackDirection) {
-            case SwipeBackDirection.LEFT:
-                return xvel > mSwipeBackVelocity;
-            case SwipeBackDirection.TOP:
-                return yvel > mSwipeBackVelocity;
             case SwipeBackDirection.RIGHT:
-                return xvel < -mSwipeBackVelocity;
+                return xvel > mSwipeBackVelocity;
             case SwipeBackDirection.BOTTOM:
+                return yvel > mSwipeBackVelocity;
+            case SwipeBackDirection.LEFT:
+                return xvel < -mSwipeBackVelocity;
+            case SwipeBackDirection.TOP:
                 return yvel < -mSwipeBackVelocity;
             case SwipeBackDirection.NONE:
                 break;
@@ -318,16 +283,16 @@ public class SwipeBackLayout extends FrameLayout {
     private GradientDrawable getNonNullShadowDrawable() {
         if (mShadowDrawable == null) {
             int[] colors = new int[]{mShadowStartColor, Color.TRANSPARENT};
-            if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
+            if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
                 mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, colors);
                 mShadowDrawable.setSize(mShadowSize, 0);
-            } else if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
+            } else if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
                 mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, colors);
                 mShadowDrawable.setSize(mShadowSize, 0);
-            } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
+            } else if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
                 mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, colors);
                 mShadowDrawable.setSize(0, mShadowSize);
-            } else if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
+            } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
                 mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
                 mShadowDrawable.setSize(0, mShadowSize);
             } else {
@@ -351,121 +316,149 @@ public class SwipeBackLayout extends FrameLayout {
         }
 
         @Override
+        public int getViewHorizontalDragRange(@NonNull View child) {
+            return isSwipeBackEnable() ? getWidth() : 0;
+        }
+
+        @Override
+        public int getViewVerticalDragRange(@NonNull View child) {
+            return isSwipeBackEnable() ? getHeight() : 0;
+        }
+
+        @Override
+        public void onEdgeTouched(int edgeFlags, int pointerId) {
+            super.onEdgeTouched(edgeFlags, pointerId);
+        }
+
+        @Override
+        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
+            super.onEdgeDragStarted(edgeFlags, pointerId);
+        }
+
+        @Override
         public int clampViewPositionHorizontal(@NonNull View child, int left, int dx) {
-            mLeftOffset = getPaddingLeft();
-            if (isSwipeEnabled()) {
-                if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
-                    if (!SwipeBackCompat.canViewScrollLeft(mInnerScrollViews, mDownX, mDownY, false)) {
-                        mLeftOffset = Math.min(Math.max(left, getPaddingLeft()), mWidth);
+            int newLeft = 0;
+            if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
+                if (mSwipeBackOnlyEdge) {
+                    if (mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT)) {
+                        newLeft = Math.min(Math.max(left, 0), getWidth());
+                    }
+                } else {
+                    if (mSwipeBackForceEdge && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT)) {
+                        newLeft = Math.min(Math.max(left, 0), getWidth());
                     } else {
-                        if (mSwipeBackForceEdge && mTouchedEdge == ViewDragHelper.EDGE_LEFT) {
-                            mLeftOffset = Math.min(Math.max(left, getPaddingLeft()), mWidth);
+                        if (!SwipeBackCompat.canViewScrollLeft(mInnerScrollViews, mDownX, mDownY, false)) {
+                            newLeft = Math.min(Math.max(left, 0), getWidth());
                         }
                     }
-                } else if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
-                    if (!SwipeBackCompat.canViewScrollRight(mInnerScrollViews, mDownX, mDownY, false)) {
-                        mLeftOffset = Math.min(Math.max(left, -mWidth), getPaddingRight());
+                }
+            } else if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
+                if (mSwipeBackOnlyEdge) {
+                    if (mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT)) {
+                        newLeft = Math.min(Math.max(left, -getWidth()), 0);
+                    }
+                } else {
+                    if (mSwipeBackForceEdge && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT)) {
+                        newLeft = Math.min(Math.max(left, -getWidth()), 0);
                     } else {
-                        if (mSwipeBackForceEdge && mTouchedEdge == ViewDragHelper.EDGE_RIGHT) {
-                            mLeftOffset = Math.min(Math.max(left, -mWidth), getPaddingRight());
+                        if (!SwipeBackCompat.canViewScrollRight(mInnerScrollViews, mDownX, mDownY, false)) {
+                            newLeft = Math.min(Math.max(left, -getWidth()), 0);
                         }
                     }
                 }
             }
-            Log.i(TAG, "clampViewPositionHorizontal -> " + "mLeftOffset=" + mLeftOffset);
-            return mLeftOffset;
+            return newLeft;
         }
 
         @Override
         public int clampViewPositionVertical(@NonNull View child, int top, int dy) {
-            mTopOffset = getPaddingTop();
-            if (isSwipeEnabled()) {
-                if (mSwipeBackDirection == SwipeBackDirection.TOP) {
-                    if (!SwipeBackCompat.canViewScrollUp(mInnerScrollViews, mDownX, mDownY, false)) {
-                        mTopOffset = Math.min(Math.max(top, getPaddingTop()), mHeight);
+            int newTop = 0;
+            if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
+                if (mSwipeBackOnlyEdge) {
+                    if (mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP)) {
+                        newTop = Math.min(Math.max(top, 0), getHeight());
+                    }
+                } else {
+                    if (mSwipeBackForceEdge && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP)) {
+                        newTop = Math.min(Math.max(top, 0), getHeight());
                     } else {
-                        if (mSwipeBackForceEdge && mTouchedEdge == ViewDragHelper.EDGE_TOP) {
-                            mTopOffset = Math.min(Math.max(top, getPaddingTop()), mHeight);
+                        if (!SwipeBackCompat.canViewScrollUp(mInnerScrollViews, mDownX, mDownY, false)) {
+                            newTop = Math.min(Math.max(top, 0), getHeight());
                         }
                     }
-                } else if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
-                    if (!SwipeBackCompat.canViewScrollDown(mInnerScrollViews, mDownX, mDownY, false)) {
-                        mTopOffset = Math.min(Math.max(top, -mHeight), getPaddingBottom());
+                }
+            } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
+                if (mSwipeBackOnlyEdge) {
+                    if (mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM)) {
+                        newTop = Math.min(Math.max(top, -getHeight()), 0);
+                    }
+                } else {
+                    if (mSwipeBackForceEdge && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM)) {
+                        newTop = Math.min(Math.max(top, -getHeight()), 0);
                     } else {
-                        if (mSwipeBackForceEdge && mTouchedEdge == ViewDragHelper.EDGE_BOTTOM) {
-                            mTopOffset = Math.min(Math.max(top, -mHeight), getPaddingBottom());
+                        if (!SwipeBackCompat.canViewScrollDown(mInnerScrollViews, mDownX, mDownY, false)) {
+                            newTop = Math.min(Math.max(top, -getHeight()), 0);
                         }
                     }
                 }
             }
-            Log.i(TAG, "clampViewPositionVertical -> " + "mTopOffset=" + mTopOffset);
-            return mTopOffset;
+            return newTop;
         }
 
         @Override
         public void onViewPositionChanged(@NonNull View changedView, int left, int top, int dx, int dy) {
             super.onViewPositionChanged(changedView, left, top, dx, dy);
-            left = Math.abs(left);
-            top = Math.abs(top);
             switch (mSwipeBackDirection) {
-                case SwipeBackDirection.LEFT:
                 case SwipeBackDirection.RIGHT:
-                    mFraction = 1.0f * left / mWidth;
+                case SwipeBackDirection.LEFT:
+                    mFraction = 1.0f * Math.abs(left) / getWidth();
                     break;
-                case SwipeBackDirection.TOP:
                 case SwipeBackDirection.BOTTOM:
-                    mFraction = 1.0f * top / mHeight;
+                case SwipeBackDirection.TOP:
+                    mFraction = 1.0f * Math.abs(top) / getHeight();
                     break;
                 case SwipeBackDirection.NONE:
                     break;
             }
-            Log.i(TAG, "onViewPositionChanged -> " + "mFraction=" + mFraction);
             onSwiping();
         }
 
         @Override
         public void onViewReleased(@NonNull View releasedChild, float xvel, float yvel) {
             super.onViewReleased(releasedChild, xvel, yvel);
-            mLeftOffset = mTopOffset = 0;
-            if (!isSwipeEnabled()) {
-                mTouchedEdge = ViewDragHelper.INVALID_POINTER;
-                return;
-            }
-            mTouchedEdge = ViewDragHelper.INVALID_POINTER;
-
-            boolean isBackToEnd = backJudgeBySpeed(xvel, yvel) || mFraction >= mSwipeBackFactor;
+            if (!isSwipeBackEnable()) return;
+            boolean isBackToEnd = shouldBackBySpeed(xvel, yvel) || mFraction >= mSwipeBackFactor;
             if (isBackToEnd) {
                 switch (mSwipeBackDirection) {
-                    case SwipeBackDirection.LEFT:
-                        smoothScrollToX(mWidth);
-                        break;
-                    case SwipeBackDirection.TOP:
-                        smoothScrollToY(mHeight);
-                        break;
                     case SwipeBackDirection.RIGHT:
-                        smoothScrollToX(-mWidth);
+                        smoothScrollToX(getWidth());
                         break;
                     case SwipeBackDirection.BOTTOM:
-                        smoothScrollToY(-mHeight);
+                        smoothScrollToY(getHeight());
+                        break;
+                    case SwipeBackDirection.LEFT:
+                        smoothScrollToX(-getWidth());
+                        break;
+                    case SwipeBackDirection.TOP:
+                        smoothScrollToY(-getHeight());
                         break;
                     case SwipeBackDirection.NONE:
                         break;
                 }
             } else {
                 switch (mSwipeBackDirection) {
-                    case SwipeBackDirection.LEFT:
                     case SwipeBackDirection.RIGHT:
-                        smoothScrollToX(getPaddingLeft());
+                    case SwipeBackDirection.LEFT:
+                        smoothScrollToX(0);
                         break;
-                    case SwipeBackDirection.BOTTOM:
                     case SwipeBackDirection.TOP:
-                        smoothScrollToY(getPaddingTop());
+                    case SwipeBackDirection.BOTTOM:
+                        smoothScrollToY(0);
                         break;
                     case SwipeBackDirection.NONE:
                         break;
                 }
             }
-            Log.i(TAG, "onViewReleased -> ");
         }
 
         @Override
@@ -478,44 +471,24 @@ public class SwipeBackLayout extends FrameLayout {
                     onSwipeEnd();
                 }
             }
-            Log.i(TAG, "onViewDragStateChanged -> " + "state=" + state);
         }
+    }
 
-        @Override
-        public int getViewHorizontalDragRange(@NonNull View child) {
-            Log.i(TAG, "getViewHorizontalDragRange -> " + "mWidth" + mWidth);
-            return mWidth;
-        }
-
-        @Override
-        public int getViewVerticalDragRange(@NonNull View child) {
-            Log.i(TAG, "getViewVerticalDragRange -> " + "mHeight" + mHeight);
-            return mHeight;
-        }
-
-        @Override
-        public void onEdgeTouched(int edgeFlags, int pointerId) {
-            super.onEdgeTouched(edgeFlags, pointerId);
-            //边缘Touch状态 开始滑动
-            mTouchedEdge = edgeFlags;
-            Log.i(TAG, "onEdgeTouched -> " + "mTouchedEdge" + mTouchedEdge);
-        }
-
-        @Override
-        public void onEdgeDragStarted(int edgeFlags, int pointerId) {
-            super.onEdgeDragStarted(edgeFlags, pointerId);
-            Log.i(TAG, "onEdgeDragStarted -> " + "mTouchedEdge" + mTouchedEdge);
+    protected void beforeSwipe() {
+        if (mSwipeBackListener != null) {
+            mSwipeBackListener.onBeforeSwipe(mFraction, mSwipeBackDirection);
         }
     }
 
     protected void onSwipeStart() {
         mSwiping = true;
         if (mSwipeBackListener != null) {
-            mSwipeBackListener.onSwipeStart(mFraction, mSwipeBackDirection);
+            mSwipeBackListener.onStartSwipe(mFraction, mSwipeBackDirection);
         }
     }
 
     protected void onSwiping() {
+        invalidate();
         if (mSwipeBackListener != null) {
             mSwipeBackListener.onSwiping(mFraction, mSwipeBackDirection);
         }
@@ -524,13 +497,17 @@ public class SwipeBackLayout extends FrameLayout {
     protected void onSwipeEnd() {
         mSwiping = false;
         if (mSwipeBackListener != null) {
-            mSwipeBackListener.onSwipeEnd(mFraction, mSwipeBackDirection);
+            mSwipeBackListener.onEndSwipe(mFraction, mSwipeBackDirection);
         }
     }
 
     public interface SwipeBackListener {
-        void onSwipeStart(float swipeFraction, @SwipeBackDirection int swipeDirection);
+        void onBeforeSwipe(float swipeFraction, @SwipeBackDirection int swipeDirection);
+
+        void onStartSwipe(float swipeFraction, @SwipeBackDirection int swipeDirection);
+
         void onSwiping(float swipeFraction, @SwipeBackDirection int swipeDirection);
-        void onSwipeEnd(float swipeFraction, @SwipeBackDirection int swipeDirection);
+
+        void onEndSwipe(float swipeFraction, @SwipeBackDirection int swipeDirection);
     }
 }

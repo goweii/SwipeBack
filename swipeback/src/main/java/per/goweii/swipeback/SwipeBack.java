@@ -3,14 +3,20 @@ package per.goweii.swipeback;
 import android.app.Application;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public final class SwipeBack {
     private static final SwipeBack sInstance = new SwipeBack();
 
-    private int mSwipeBackDirection = 0;
+    @SwipeBackDirection
+    private int mSwipeBackDirection = SwipeBackDirection.NONE;
+    @Nullable
     private SwipeBackTransformer mSwipeBackTransformer = null;
+    private boolean mSwipeBackOnlyEdge = false;
+    private boolean mSwipeBackForceEdge = true;
 
-    private SwipeBack() {}
+    private SwipeBack() {
+    }
 
     public static SwipeBack getInstance() {
         return sInstance;
@@ -20,19 +26,37 @@ public final class SwipeBack {
         SwipeBackManager.init(application);
     }
 
-    public void setSwipeBackDirection(int swipeBackDirection) {
+    public void setSwipeBackDirection(@SwipeBackDirection int swipeBackDirection) {
         this.mSwipeBackDirection = swipeBackDirection;
     }
 
+    @SwipeBackDirection
     public int getSwipeBackDirection() {
         return mSwipeBackDirection;
     }
 
-    public void setSwipeBackTransformer(SwipeBackTransformer swipeBackTransformer) {
+    public void setSwipeBackTransformer(@Nullable SwipeBackTransformer swipeBackTransformer) {
         this.mSwipeBackTransformer = swipeBackTransformer;
     }
 
+    @Nullable
     public SwipeBackTransformer getSwipeBackTransformer() {
         return mSwipeBackTransformer;
+    }
+
+    public void setSwipeBackForceEdge(boolean swipeBackForceEdge) {
+        this.mSwipeBackForceEdge = swipeBackForceEdge;
+    }
+
+    public void setSwipeBackOnlyEdge(boolean swipeBackOnlyEdge) {
+        this.mSwipeBackOnlyEdge = swipeBackOnlyEdge;
+    }
+
+    public boolean isSwipeBackForceEdge() {
+        return mSwipeBackForceEdge;
+    }
+
+    public boolean isSwipeBackOnlyEdge() {
+        return mSwipeBackOnlyEdge;
     }
 }

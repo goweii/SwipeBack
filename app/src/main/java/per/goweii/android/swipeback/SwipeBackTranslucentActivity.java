@@ -6,7 +6,6 @@ public class SwipeBackTranslucentActivity extends BaseSwipeBackActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().getDecorView().setAlpha(0.8F);
     }
 }
 

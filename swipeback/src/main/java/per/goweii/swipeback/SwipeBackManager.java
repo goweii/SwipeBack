@@ -32,19 +32,11 @@ class SwipeBackManager implements Application.ActivityLifecycleCallbacks {
     }
 
     @Nullable
-    public SwipeBackNode getPreviousNode(@Nullable SwipeBackNode currNode) {
-        int size = mNodes.size();
-        int currIndex = size - 1;
-        if (currNode != null) {
-            int index = mNodes.indexOf(currNode);
-            if (index >= 0) {
-                currIndex = index;
-            }
-        }
-        if (currIndex < 1) {
-            return null;
-        }
-        return mNodes.get(currIndex - 1);
+    public SwipeBackNode getPreviousNode(@NonNull SwipeBackNode currNode) {
+        if (mNodes.isEmpty()) return null;
+        int index = mNodes.indexOf(currNode);
+        if (index < 1) return null;
+        return mNodes.get(index - 1);
     }
 
     public SwipeBackNode findNode(@NonNull Activity activity) {
@@ -57,10 +49,21 @@ class SwipeBackManager implements Application.ActivityLifecycleCallbacks {
         return null;
     }
 
-    @Override
-    public void onActivityCreated(Activity activity, Bundle bundle) {
+    public void addNode(@NonNull Activity activity) {
         SwipeBackNode node = new SwipeBackNode(activity);
         mNodes.add(node);
+    }
+
+    public void removeNode(@NonNull Activity activity) {
+        SwipeBackNode node = findNode(activity);
+        if (node != null) {
+            mNodes.remove(node);
+        }
+    }
+
+    @Override
+    public void onActivityCreated(Activity activity, Bundle bundle) {
+        addNode(activity);
     }
 
     @Override
@@ -89,6 +92,6 @@ class SwipeBackManager implements Application.ActivityLifecycleCallbacks {
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        mNodes.remove(activity);
+        removeNode(activity);
     }
 }
