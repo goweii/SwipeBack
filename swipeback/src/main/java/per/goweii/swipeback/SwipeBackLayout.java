@@ -15,6 +15,8 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
+import androidx.annotation.Px;
+import androidx.core.graphics.ColorUtils;
 import androidx.core.view.ViewCompat;
 import androidx.customview.widget.ViewDragHelper;
 
@@ -32,16 +34,18 @@ public class SwipeBackLayout extends FrameLayout {
     private float mDownY = 0;
     private GradientDrawable mShadowDrawable = null;
 
-    private boolean mShadowEnable = true;
-    private int mShadowStartColor = 0;
+    @ColorInt
+    private int mShadowColor = Color.TRANSPARENT;
+    @Px
     private int mShadowSize = 0;
+    @IntRange(from = 0, to = 255)
+    private int mMaskAlpha = 150;
     @SwipeBackDirection
     private int mSwipeBackDirection = SwipeBackDirection.NONE;
     private boolean mSwipeBackForceEdge = true;
     private boolean mSwipeBackOnlyEdge = false;
     private float mSwipeBackFactor = 0.5f;
     private float mSwipeBackVelocity = 2000f;
-    private int mMaskAlpha = 150;
 
     private SwipeBackListener mSwipeBackListener;
 
@@ -78,19 +82,15 @@ public class SwipeBackLayout extends FrameLayout {
         return mSwipeBackFactor;
     }
 
-    public void setShadowEnable(boolean shadowEnable) {
-        mShadowEnable = shadowEnable;
-    }
-
     public boolean isShadowEnable() {
-        return mShadowEnable;
+        return mShadowSize > 0 && mShadowColor != Color.TRANSPARENT;
     }
 
-    public void setShadowStartColor(@ColorInt int colorInt) {
-        mShadowStartColor = colorInt;
+    public void setShadowColor(@ColorInt int colorInt) {
+        mShadowColor = colorInt;
     }
 
-    public void setShadowSize(int px) {
+    public void setShadowSize(@Px int px) {
         mShadowSize = px;
     }
 
@@ -322,20 +322,20 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     private void drawShadow(Canvas canvas, View child) {
-        final Rect childRect = mShadowRect;
-        child.getHitRect(childRect);
-        if (mShadowEnable) {
+        if (isShadowEnable()) {
+            final Rect childRect = mShadowRect;
+            child.getHitRect(childRect);
             final Drawable shadow = getNonNullShadowDrawable();
             if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
                 shadow.setBounds(childRect.left - shadow.getIntrinsicWidth(), childRect.top, childRect.left, childRect.bottom);
             } else if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
-                shadow.setBounds(childRect.left, childRect.top, childRect.left, childRect.bottom);
+                shadow.setBounds(childRect.right, childRect.top, childRect.right + shadow.getIntrinsicWidth(), childRect.bottom);
             } else if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
-                shadow.setBounds(childRect.left, childRect.top - shadow.getIntrinsicHeight(), childRect.left, childRect.bottom);
+                shadow.setBounds(childRect.left, childRect.top - shadow.getIntrinsicHeight(), childRect.right, childRect.top);
             } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
-                shadow.setBounds(childRect.left, childRect.top, childRect.left, childRect.bottom);
+                shadow.setBounds(childRect.left, childRect.bottom, childRect.right, childRect.bottom + shadow.getIntrinsicHeight());
             }
-            mShadowDrawable.setAlpha((int) ((1 - mFraction) * 255));
+            //mShadowDrawable.setAlpha((int) ((1 - mFraction) * 255));
             mShadowDrawable.draw(canvas);
         }
     }
@@ -378,7 +378,11 @@ public class SwipeBackLayout extends FrameLayout {
     @NonNull
     private GradientDrawable getNonNullShadowDrawable() {
         if (mShadowDrawable == null) {
-            int[] colors = new int[]{mShadowStartColor, Color.TRANSPARENT};
+            int[] colors = new int[]{
+                    mShadowColor,
+                    ColorUtils.setAlphaComponent(mShadowColor, (int) (Color.alpha(mShadowColor) * 0.3)),
+                    Color.TRANSPARENT
+            };
             if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
                 mShadowDrawable = new GradientDrawable(GradientDrawable.Orientation.RIGHT_LEFT, colors);
                 mShadowDrawable.setSize(mShadowSize, 0);
@@ -413,12 +417,12 @@ public class SwipeBackLayout extends FrameLayout {
 
         @Override
         public int getViewHorizontalDragRange(@NonNull View child) {
-            return isSwipeBackEnable() ? getWidth() : 0;
+            return isSwipeBackEnable() ? (getWidth() + mShadowSize) : 0;
         }
 
         @Override
         public int getViewVerticalDragRange(@NonNull View child) {
-            return isSwipeBackEnable() ? getHeight() : 0;
+            return isSwipeBackEnable() ? (getHeight() + mShadowSize) : 0;
         }
 
         @Override
@@ -437,30 +441,18 @@ public class SwipeBackLayout extends FrameLayout {
             if (mSwipeBackDirection == SwipeBackDirection.RIGHT) {
                 if (mSwipeBackOnlyEdge) {
                     if (mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT)) {
-                        newLeft = Math.min(Math.max(left, 0), getWidth());
+                        newLeft = Math.min(Math.max(left, 0), getWidth() + mShadowSize);
                     }
                 } else {
-                    if (mSwipeBackForceEdge && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT)) {
-                        newLeft = Math.min(Math.max(left, 0), getWidth());
-                    } else {
-                        //if (!SwipeBackCompat.canViewScrollLeft(mInnerScrollViews, mDownX, mDownY, false)) {
-                        newLeft = Math.min(Math.max(left, 0), getWidth());
-                        //}
-                    }
+                    newLeft = Math.min(Math.max(left, 0), getWidth() + mShadowSize);
                 }
             } else if (mSwipeBackDirection == SwipeBackDirection.LEFT) {
                 if (mSwipeBackOnlyEdge) {
                     if (mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT)) {
-                        newLeft = Math.min(Math.max(left, -getWidth()), 0);
+                        newLeft = Math.min(Math.max(left, -getWidth() - mShadowSize), 0);
                     }
                 } else {
-                    if (mSwipeBackForceEdge && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT)) {
-                        newLeft = Math.min(Math.max(left, -getWidth()), 0);
-                    } else {
-                        //if (!SwipeBackCompat.canViewScrollRight(mInnerScrollViews, mDownX, mDownY, false)) {
-                        newLeft = Math.min(Math.max(left, -getWidth()), 0);
-                        //}
-                    }
+                    newLeft = Math.min(Math.max(left, -getWidth() - mShadowSize), 0);
                 }
             }
             return newLeft;
@@ -472,30 +464,18 @@ public class SwipeBackLayout extends FrameLayout {
             if (mSwipeBackDirection == SwipeBackDirection.BOTTOM) {
                 if (mSwipeBackOnlyEdge) {
                     if (mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP)) {
-                        newTop = Math.min(Math.max(top, 0), getHeight());
+                        newTop = Math.min(Math.max(top, 0), getHeight() + mShadowSize);
                     }
                 } else {
-                    if (mSwipeBackForceEdge && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP)) {
-                        newTop = Math.min(Math.max(top, 0), getHeight());
-                    } else {
-                        //if (!SwipeBackCompat.canViewScrollUp(mInnerScrollViews, mDownX, mDownY, false)) {
-                        newTop = Math.min(Math.max(top, 0), getHeight());
-                        //}
-                    }
+                    newTop = Math.min(Math.max(top, 0), getHeight() + mShadowSize);
                 }
             } else if (mSwipeBackDirection == SwipeBackDirection.TOP) {
                 if (mSwipeBackOnlyEdge) {
                     if (mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM)) {
-                        newTop = Math.min(Math.max(top, -getHeight()), 0);
+                        newTop = Math.min(Math.max(top, -getHeight() - mShadowSize), 0);
                     }
                 } else {
-                    if (mSwipeBackForceEdge && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM)) {
-                        newTop = Math.min(Math.max(top, -getHeight()), 0);
-                    } else {
-                        //if (!SwipeBackCompat.canViewScrollDown(mInnerScrollViews, mDownX, mDownY, false)) {
-                        newTop = Math.min(Math.max(top, -getHeight()), 0);
-                        // }
-                    }
+                    newTop = Math.min(Math.max(top, -getHeight() - mShadowSize), 0);
                 }
             }
             return newTop;
@@ -507,15 +487,17 @@ public class SwipeBackLayout extends FrameLayout {
             switch (mSwipeBackDirection) {
                 case SwipeBackDirection.RIGHT:
                 case SwipeBackDirection.LEFT:
-                    mFraction = 1.0f * Math.abs(left) / getWidth();
+                    mFraction = 1F * Math.abs(left) / (getWidth() + mShadowSize);
                     break;
                 case SwipeBackDirection.BOTTOM:
                 case SwipeBackDirection.TOP:
-                    mFraction = 1.0f * Math.abs(top) / getHeight();
+                    mFraction = 1F * Math.abs(top) / (getHeight() + mShadowSize);
                     break;
                 case SwipeBackDirection.NONE:
                     break;
             }
+            mFraction = Math.max(0F, mFraction);
+            mFraction = Math.min(1F, mFraction);
             onSwiping();
         }
 
@@ -528,16 +510,16 @@ public class SwipeBackLayout extends FrameLayout {
             if (isBackToEnd) {
                 switch (mSwipeBackDirection) {
                     case SwipeBackDirection.RIGHT:
-                        smoothScrollToX(getWidth());
+                        smoothScrollToX(getWidth() + mShadowSize);
                         break;
                     case SwipeBackDirection.BOTTOM:
-                        smoothScrollToY(getHeight());
+                        smoothScrollToY(getHeight() + mShadowSize);
                         break;
                     case SwipeBackDirection.LEFT:
-                        smoothScrollToX(-getWidth());
+                        smoothScrollToX(-getWidth() - mShadowSize);
                         break;
                     case SwipeBackDirection.TOP:
-                        smoothScrollToY(-getHeight());
+                        smoothScrollToY(-getHeight() - mShadowSize);
                         break;
                     case SwipeBackDirection.NONE:
                         break;

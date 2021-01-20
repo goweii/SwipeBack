@@ -9,8 +9,11 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.FrameLayout;
 
+import androidx.annotation.ColorInt;
+import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.Px;
 
 import java.util.Objects;
 
@@ -56,10 +59,8 @@ public class SwipeBackNode {
         swipeBackLayout.addView(decorChildView);
         swipeBackLayout.setLayoutParams(userContentViewParams);
         decorView.addView(swipeBackLayout);
-        swipeBackLayout.setSwipeBackDirection(getActivitySwipeBackDirection());
-        swipeBackLayout.setSwipeBackForceEdge(isActivitySwipeBackForceEdge());
-        swipeBackLayout.setSwipeBackOnlyEdge(isActivitySwipeBackOnlyEdge());
         mLayout = swipeBackLayout;
+        configLayout();
         mTransformer = getActivitySwipeBackTransformer();
     }
 
@@ -109,6 +110,32 @@ public class SwipeBackNode {
         return swipeBackForceEdge;
     }
 
+    @ColorInt
+    private int getActivitySwipeBackShadowColor() {
+        return SwipeBack.getInstance().getShadowColor();
+    }
+
+    @Px
+    private int getActivitySwipeBackShadowSize() {
+        return SwipeBack.getInstance().getShadowSize();
+    }
+
+    @IntRange(from = 0, to = 255)
+    private int getActivitySwipeBackMaskAlpha() {
+        return SwipeBack.getInstance().getMaskAlpha();
+    }
+
+    private void configLayout() {
+        if (mLayout != null) {
+            mLayout.setSwipeBackDirection(getActivitySwipeBackDirection());
+            mLayout.setSwipeBackForceEdge(isActivitySwipeBackForceEdge());
+            mLayout.setSwipeBackOnlyEdge(isActivitySwipeBackOnlyEdge());
+            mLayout.setMaskAlpha(getActivitySwipeBackMaskAlpha());
+            mLayout.setShadowColor(getActivitySwipeBackShadowColor());
+            mLayout.setShadowSize(getActivitySwipeBackShadowSize());
+        }
+    }
+
     @Nullable
     private View findPreviewView() {
         SwipeBackNode previousNode = SwipeBackManager.getInstance().getPreviousNode(this);
@@ -135,11 +162,7 @@ public class SwipeBackNode {
     private class SwipeBackListener implements SwipeBackLayout.SwipeBackListener {
         @Override
         public void onBeforeSwipe(float swipeFraction, int swipeDirection) {
-            if (mLayout != null) {
-                mLayout.setSwipeBackDirection(getActivitySwipeBackDirection());
-                mLayout.setSwipeBackForceEdge(isActivitySwipeBackForceEdge());
-                mLayout.setSwipeBackOnlyEdge(isActivitySwipeBackOnlyEdge());
-            }
+            configLayout();
             mTransformer = getActivitySwipeBackTransformer();
         }
 

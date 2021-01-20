@@ -50,6 +50,12 @@
                 android:layout_height="wrap_content"
                 android:text="收缩效果" />
 
+            <RadioButton
+                android:id="@+id/rb_avoid_statusbar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="空出状态栏" />
+
         </RadioGroup>
 
         <TextView

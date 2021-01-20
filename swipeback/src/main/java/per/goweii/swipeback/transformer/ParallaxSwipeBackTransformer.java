@@ -53,8 +53,15 @@ public class ParallaxSwipeBackTransformer implements SwipeBackTransformer {
     }
 
     @Override
-    public void restore(@NonNull View currentView, @Nullable View previousView, float fraction, int swipeDirection) {
+    public void restore(
+            @NonNull View currentView,
+            @Nullable View previousView,
+            @FloatRange(from = 0.0, to = 1.0) float fraction,
+            @SwipeBackDirection int swipeDirection
+    ) {
         if (previousView == null) return;
+        if (previousView.getWidth() <= 0) return;
+        if (previousView.getHeight() <= 0) return;
         previousView.setTranslationX(0);
         previousView.setTranslationY(0);
         previousView.setAlpha(1);

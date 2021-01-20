@@ -8,25 +8,12 @@ import androidx.annotation.Nullable;
 
 import per.goweii.swipeback.SwipeBackDirection;
 import per.goweii.swipeback.SwipeBackTransformer;
+import per.goweii.swipeback.utils.Utils;
 
-public class ShrinkSwipeBackTransformer implements SwipeBackTransformer {
-    private final float mScale;
-    private final float mAlpha;
-    private final float mCenterX;
-    private final float mCenterY;
+public class AvoidStatusBarSwipeBackTransformer implements SwipeBackTransformer {
+    private float mScale = 1F;
 
-    public ShrinkSwipeBackTransformer() {
-        this(0.96F, 1F, 0.5F, 0.5F);
-    }
-
-    public ShrinkSwipeBackTransformer(@FloatRange(from = 0, to = 1) float scale,
-                                      @FloatRange(from = 0, to = 1) float alpha,
-                                      @FloatRange(from = 0, to = 1) float centerX,
-                                      @FloatRange(from = 0, to = 1) float centerY) {
-        mScale = scale;
-        mAlpha = alpha;
-        mCenterX = centerX;
-        mCenterY = centerY;
+    public AvoidStatusBarSwipeBackTransformer() {
     }
 
     @Override
@@ -39,13 +26,16 @@ public class ShrinkSwipeBackTransformer implements SwipeBackTransformer {
         if (previousView == null) return;
         if (previousView.getWidth() <= 0) return;
         if (previousView.getHeight() <= 0) return;
-        previousView.setPivotX(previousView.getWidth() * mCenterX);
-        previousView.setPivotY(previousView.getHeight() * mCenterY);
+        if (mScale == 1) {
+            int statusBarHeight = Utils.getStatusBarHeight(previousView.getContext());
+            int endHeight = previousView.getHeight() - statusBarHeight;
+            mScale = 1F * endHeight / previousView.getHeight();
+        }
+        previousView.setPivotX(previousView.getWidth() * 0.5F);
+        previousView.setPivotY(previousView.getHeight());
         float scale = mScale + (1 - mScale) * fraction;
         previousView.setScaleX(scale);
         previousView.setScaleY(scale);
-        float alpha = mAlpha + (1 - mAlpha) * fraction;
-        previousView.setAlpha(alpha);
     }
 
     @Override
@@ -56,8 +46,7 @@ public class ShrinkSwipeBackTransformer implements SwipeBackTransformer {
             @SwipeBackDirection int swipeDirection
     ) {
         if (previousView == null) return;
-        previousView.setScaleX(1);
-        previousView.setScaleY(1);
-        previousView.setAlpha(1);
+        previousView.setScaleX(1F);
+        previousView.setScaleY(1F);
     }
 }

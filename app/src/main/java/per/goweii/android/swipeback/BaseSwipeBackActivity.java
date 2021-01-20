@@ -1,6 +1,7 @@
 package per.goweii.android.swipeback;
 
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,6 +21,7 @@ import per.goweii.actionbarex.common.OnActionBarChildClickListener;
 import per.goweii.swipeback.SwipeBackDirection;
 import per.goweii.swipeback.SwipeBackTransformer;
 import per.goweii.swipeback.SwipeBackAble;
+import per.goweii.swipeback.transformer.AvoidStatusBarSwipeBackTransformer;
 import per.goweii.swipeback.transformer.ParallaxSwipeBackTransformer;
 import per.goweii.swipeback.transformer.ShrinkSwipeBackTransformer;
 
@@ -51,6 +53,8 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
                     mSwipeBackTransformer = new ParallaxSwipeBackTransformer();
                 } else if (checkedId == R.id.rb_shrink) {
                     mSwipeBackTransformer = new ShrinkSwipeBackTransformer();
+                } else if (checkedId == R.id.rb_avoid_statusbar) {
+                    mSwipeBackTransformer = new AvoidStatusBarSwipeBackTransformer();
                 } else {
                     mSwipeBackTransformer = null;
                 }
@@ -103,9 +107,9 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
         vp.setAdapter(new ViewPagerAdapter());
 
         WebView wv = findViewById(R.id.wv);
-        wv.setWebViewClient(new WebViewClient(){
+        wv.setWebViewClient(new WebViewClient() {
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url){
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);
                 return true;
             }
