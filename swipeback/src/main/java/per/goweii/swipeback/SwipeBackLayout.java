@@ -264,10 +264,9 @@ public class SwipeBackLayout extends FrameLayout {
                 if (mCheckedIntercept) {
                     if (mShouldIntercept) {
                         return mDragHelper.shouldInterceptTouchEvent(ev);
-                    } else {
-                        return false;
                     }
                 }
+                return false;
             default:
                 return mDragHelper.shouldInterceptTouchEvent(ev);
         }
@@ -275,16 +274,20 @@ public class SwipeBackLayout extends FrameLayout {
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public boolean onTouchEvent(MotionEvent event) {
+    public boolean onTouchEvent(MotionEvent ev) {
         if (!isSwipeBackEnable()) return false;
-        if (mCheckedIntercept) {
-            if (mShouldIntercept) {
-                mDragHelper.processTouchEvent(event);
-            }
-            return mShouldIntercept;
-        } else {
-            mDragHelper.processTouchEvent(event);
-            return true;
+        switch (ev.getActionMasked()) {
+            case MotionEvent.ACTION_MOVE:
+                if (mCheckedIntercept) {
+                    if (mShouldIntercept) {
+                        mDragHelper.processTouchEvent(ev);
+                        return true;
+                    }
+                }
+                return false;
+            default:
+                mDragHelper.processTouchEvent(ev);
+                return true;
         }
     }
 
