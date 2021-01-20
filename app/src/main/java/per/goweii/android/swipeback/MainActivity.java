@@ -5,22 +5,17 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseSwipeBackActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
     }
 
     public void startNormalActivity(View view) {
         startActivity(new Intent(this, SwipeBackNormalActivity.class));
         overridePendingTransition(R.anim.swipeback_activity_open_right_in,
                 R.anim.swipeback_activity_open_left_out);
-    }
-
-    public void startTranslucentActivity(View view) {
-        startActivity(new Intent(this, SwipeBackTranslucentActivity.class));
     }
 
 }

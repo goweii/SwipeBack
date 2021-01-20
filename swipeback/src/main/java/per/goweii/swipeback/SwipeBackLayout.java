@@ -378,6 +378,23 @@ public class SwipeBackLayout extends FrameLayout {
         }
     }
 
+    private void refreshFraction(@NonNull View view) {
+        switch (mSwipeBackDirection) {
+            case SwipeBackDirection.RIGHT:
+            case SwipeBackDirection.LEFT:
+                mFraction = 1F * Math.abs(view.getLeft()) / (getWidth() + mShadowSize);
+                break;
+            case SwipeBackDirection.BOTTOM:
+            case SwipeBackDirection.TOP:
+                mFraction = 1F * Math.abs(view.getTop()) / (getHeight() + mShadowSize);
+                break;
+            case SwipeBackDirection.NONE:
+                break;
+        }
+        mFraction = Math.max(0F, mFraction);
+        mFraction = Math.min(1F, mFraction);
+    }
+
     @NonNull
     private GradientDrawable getNonNullShadowDrawable() {
         if (mShadowDrawable == null) {
@@ -415,6 +432,7 @@ public class SwipeBackLayout extends FrameLayout {
         @Override
         public void onViewCaptured(@NonNull View capturedChild, int activePointerId) {
             super.onViewCaptured(capturedChild, activePointerId);
+            refreshFraction(capturedChild);
             onSwipeStart();
         }
 
@@ -487,20 +505,7 @@ public class SwipeBackLayout extends FrameLayout {
         @Override
         public void onViewPositionChanged(@NonNull View changedView, int left, int top, int dx, int dy) {
             super.onViewPositionChanged(changedView, left, top, dx, dy);
-            switch (mSwipeBackDirection) {
-                case SwipeBackDirection.RIGHT:
-                case SwipeBackDirection.LEFT:
-                    mFraction = 1F * Math.abs(left) / (getWidth() + mShadowSize);
-                    break;
-                case SwipeBackDirection.BOTTOM:
-                case SwipeBackDirection.TOP:
-                    mFraction = 1F * Math.abs(top) / (getHeight() + mShadowSize);
-                    break;
-                case SwipeBackDirection.NONE:
-                    break;
-            }
-            mFraction = Math.max(0F, mFraction);
-            mFraction = Math.min(1F, mFraction);
+            refreshFraction(changedView);
             onSwiping();
         }
 

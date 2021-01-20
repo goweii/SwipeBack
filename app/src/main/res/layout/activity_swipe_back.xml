@@ -17,7 +17,9 @@
         app:ab_titleBarHeight="44dp"
         app:abc_titleText="@string/app_name"
         app:abc_rightText="模拟重建APP"
-        app:abc_rightTextColor="#fff"
+        app:abc_leftText="打开新页面"
+        app:abc_leftTextColor="#ccffffff"
+        app:abc_rightTextColor="#ccffffff"
         app:abc_titleTextColor="@android:color/white" />
 
     <LinearLayout
@@ -156,14 +158,6 @@
                 android:layout_height="200dp"
                 android:layout_marginTop="5dp"
                 android:background="#fff" />
-
-            <WebView
-                android:id="@+id/wv"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:background="#fff"
-                tools:ignore="WebViewLayout" />
 
         </LinearLayout>
 

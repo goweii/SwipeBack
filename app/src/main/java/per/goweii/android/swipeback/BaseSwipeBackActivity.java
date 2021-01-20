@@ -1,5 +1,6 @@
 package per.goweii.android.swipeback;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,6 +43,16 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
             @Override
             public void onClick(View v) {
                 App.recreate();
+            }
+        });
+        abc.setOnLeftTextClickListener(new OnActionBarChildClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(BaseSwipeBackActivity.this, SwipeBackNormalActivity.class));
+                overridePendingTransition(
+                        R.anim.swipeback_activity_open_right_in,
+                        R.anim.swipeback_activity_open_left_out
+                );
             }
         });
 
@@ -105,16 +116,6 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
 
         ViewPager vp = findViewById(R.id.vp);
         vp.setAdapter(new ViewPagerAdapter());
-
-        WebView wv = findViewById(R.id.wv);
-        wv.setWebViewClient(new WebViewClient() {
-            @Override
-            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                view.loadUrl(url);
-                return true;
-            }
-        });
-        wv.loadUrl("https://github.com/goweii");
     }
 
     @Override

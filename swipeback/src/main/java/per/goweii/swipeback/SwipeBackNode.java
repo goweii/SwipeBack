@@ -169,6 +169,9 @@ public class SwipeBackNode {
         @Override
         public void onStartSwipe(float swipeFraction, int swipeDirection) {
             mPreviewView = findPreviewView();
+            if (mLayout != null && mTransformer != null && swipeFraction == 0) {
+                mTransformer.initialize(mLayout, mPreviewView);
+            }
             if (!mTranslucent) {
                 TranslucentCompat.convertActivityToTranslucent(mActivity);
             }
@@ -183,10 +186,10 @@ public class SwipeBackNode {
 
         @Override
         public void onEndSwipe(float swipeFraction, int swipeDirection) {
+            if (mLayout != null && mTransformer != null) {
+                mTransformer.restore(mLayout, mPreviewView);
+            }
             if (swipeFraction != 1) {
-                if (mLayout != null && mTransformer != null) {
-                    mTransformer.restore(mLayout, mPreviewView, swipeFraction, swipeDirection);
-                }
                 if (!mTranslucent) {
                     TranslucentCompat.convertActivityFromTranslucent(mActivity);
                 }

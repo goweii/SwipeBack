@@ -7,6 +7,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public interface SwipeBackTransformer {
+    void initialize(
+            @NonNull View currentView,
+            @Nullable View previousView
+    );
+
     void transform(
             @NonNull View currentView,
             @Nullable View previousView,
@@ -16,8 +21,6 @@ public interface SwipeBackTransformer {
 
     void restore(
             @NonNull View currentView,
-            @Nullable View previousView,
-            @FloatRange(from = 0.0, to = 1.0) float fraction,
-            @SwipeBackDirection int swipeDirection
+            @Nullable View previousView
     );
 }
