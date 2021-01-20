@@ -30,9 +30,7 @@ public class ParallaxSwipeBackTransformer implements SwipeBackTransformer {
             @FloatRange(from = 0.0, to = 1.0) float fraction,
             @SwipeBackDirection int direction
     ) {
-        if (previousView == null) {
-            return;
-        }
+        if (previousView == null) return;
         if (direction == SwipeBackDirection.RIGHT) {
             float translation = previousView.getWidth() * mPercent * (1 - fraction);
             previousView.setTranslationX(-translation);
@@ -52,5 +50,13 @@ public class ParallaxSwipeBackTransformer implements SwipeBackTransformer {
         }
         float alpha = mAlpha + (1 - mAlpha) * fraction;
         previousView.setAlpha(alpha);
+    }
+
+    @Override
+    public void restore(@NonNull View currentView, @Nullable View previousView, float fraction, int swipeDirection) {
+        if (previousView == null) return;
+        previousView.setTranslationX(0);
+        previousView.setTranslationY(0);
+        previousView.setAlpha(1);
     }
 }

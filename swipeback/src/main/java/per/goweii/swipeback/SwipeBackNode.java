@@ -19,6 +19,7 @@ public class SwipeBackNode {
     private final boolean mTranslucent;
     private SwipeBackLayout mLayout = null;
     private SwipeBackTransformer mTransformer = null;
+    private View mPreviewView = null;
 
     public SwipeBackNode(@NonNull Activity activity) {
         mActivity = activity;
@@ -35,7 +36,6 @@ public class SwipeBackNode {
         Window window = mActivity.getWindow();
         if (window == null) return;
         FrameLayout decorView = (FrameLayout) window.getDecorView();
-        if (decorView == null) return;
         if (decorView.getChildCount() == 0) return;
         View decorChildView = decorView.getChildAt(0);
         if (decorChildView == null) return;
@@ -109,6 +109,16 @@ public class SwipeBackNode {
         return swipeBackForceEdge;
     }
 
+    @Nullable
+    private View findPreviewView() {
+        SwipeBackNode previousNode = SwipeBackManager.getInstance().getPreviousNode(this);
+        if (previousNode != null) {
+            FrameLayout decorView = (FrameLayout) previousNode.getActivity().getWindow().getDecorView();
+            return decorView.getChildAt(0);
+        }
+        return null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,6 +145,7 @@ public class SwipeBackNode {
 
         @Override
         public void onStartSwipe(float swipeFraction, int swipeDirection) {
+            mPreviewView = findPreviewView();
             if (!mTranslucent) {
                 TranslucentCompat.convertActivityToTranslucent(mActivity);
             }
@@ -143,18 +154,16 @@ public class SwipeBackNode {
         @Override
         public void onSwiping(float swipeFraction, int swipeDirection) {
             if (mLayout != null && mTransformer != null) {
-                SwipeBackNode previousNode = SwipeBackManager.getInstance().getPreviousNode(SwipeBackNode.this);
-                if (previousNode != null) {
-                    FrameLayout decorView = (FrameLayout) previousNode.getActivity().getWindow().getDecorView();
-                    View previewView = decorView.getChildAt(0);
-                    mTransformer.transform(mLayout, previewView, swipeFraction, swipeDirection);
-                }
+                mTransformer.transform(mLayout, mPreviewView, swipeFraction, swipeDirection);
             }
         }
 
         @Override
         public void onEndSwipe(float swipeFraction, int swipeDirection) {
             if (swipeFraction != 1) {
+                if (mLayout != null && mTransformer != null) {
+                    mTransformer.restore(mLayout, mPreviewView, swipeFraction, swipeDirection);
+                }
                 if (!mTranslucent) {
                     TranslucentCompat.convertActivityFromTranslucent(mActivity);
                 }

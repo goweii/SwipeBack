@@ -2,6 +2,9 @@ package per.goweii.swipeback;
 
 import androidx.annotation.IntDef;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
 @IntDef({
         SwipeBackDirection.NONE,
         SwipeBackDirection.RIGHT,
@@ -9,6 +12,7 @@ import androidx.annotation.IntDef;
         SwipeBackDirection.LEFT,
         SwipeBackDirection.TOP
 })
+@Retention(RetentionPolicy.SOURCE)
 public @interface SwipeBackDirection {
     int NONE = 0;
     int RIGHT = 1;

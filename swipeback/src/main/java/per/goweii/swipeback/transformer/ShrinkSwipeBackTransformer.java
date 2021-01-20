@@ -37,4 +37,12 @@ public class ShrinkSwipeBackTransformer implements SwipeBackTransformer {
         float alpha = mAlpha + (1 - mAlpha) * fraction;
         previousView.setAlpha(alpha);
     }
+
+    @Override
+    public void restore(@NonNull View currentView, @Nullable View previousView, float fraction, int swipeDirection) {
+        if (previousView == null) return;
+        previousView.setScaleX(1);
+        previousView.setScaleY(1);
+        previousView.setAlpha(1);
+    }
 }
