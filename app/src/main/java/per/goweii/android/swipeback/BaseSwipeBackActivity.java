@@ -52,12 +52,12 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
                 if (mSwipeBackTransformer instanceof ShrinkSwipeBackTransformer) {
                     overridePendingTransition(
                             R.anim.swipeback_activity_open_right_in,
-                            R.anim.swipeback_activity_open_left_out
+                            R.anim.swipeback_activity_open_scale_out
                     );
                 } else if (mSwipeBackTransformer instanceof ParallaxSwipeBackTransformer) {
                     overridePendingTransition(
                             R.anim.swipeback_activity_open_right_in,
-                            R.anim.swipeback_activity_open_scale_out
+                            R.anim.swipeback_activity_open_left_out
                     );
                 } else if (mSwipeBackTransformer instanceof AvoidStatusBarSwipeBackTransformer) {
                     overridePendingTransition(
