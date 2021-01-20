@@ -49,10 +49,27 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(BaseSwipeBackActivity.this, SwipeBackNormalActivity.class));
-                overridePendingTransition(
-                        R.anim.swipeback_activity_open_right_in,
-                        R.anim.swipeback_activity_open_left_out
-                );
+                if (mSwipeBackTransformer instanceof ShrinkSwipeBackTransformer) {
+                    overridePendingTransition(
+                            R.anim.swipeback_activity_open_right_in,
+                            R.anim.swipeback_activity_open_left_out
+                    );
+                } else if (mSwipeBackTransformer instanceof ParallaxSwipeBackTransformer) {
+                    overridePendingTransition(
+                            R.anim.swipeback_activity_open_right_in,
+                            R.anim.swipeback_activity_open_scale_out
+                    );
+                } else if (mSwipeBackTransformer instanceof AvoidStatusBarSwipeBackTransformer) {
+                    overridePendingTransition(
+                            R.anim.swipeback_activity_open_right_in,
+                            R.anim.swipeback_activity_open_scale_out
+                    );
+                } else {
+                    overridePendingTransition(
+                            R.anim.swipeback_activity_open_right_in,
+                            R.anim.swipeback_activity_open_left_out
+                    );
+                }
             }
         });
 
