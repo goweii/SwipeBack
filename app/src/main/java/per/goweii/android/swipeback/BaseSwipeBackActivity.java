@@ -3,6 +3,7 @@ package per.goweii.android.swipeback;
 import android.content.Intent;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -10,11 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
 import android.view.View;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import per.goweii.actionbarex.common.ActionBarCommon;
@@ -28,7 +25,8 @@ import per.goweii.swipeback.transformer.ShrinkSwipeBackTransformer;
 
 public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBackAble {
 
-    private int mSwipeBackDirection = SwipeBackDirection.LEFT;
+    @NonNull
+    private SwipeBackDirection mSwipeBackDirection = SwipeBackDirection.LEFT;
     private SwipeBackTransformer mSwipeBackTransformer = null;
     private boolean mSwipeBackOnlyEdge = false;
     private boolean mSwipeBackForceEdge = true;
@@ -94,20 +92,20 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
         rg_direction.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId == R.id.cb_left) {
+                if (checkedId == R.id.rb_left) {
                     mSwipeBackDirection = SwipeBackDirection.RIGHT;
-                } else if (checkedId == R.id.cb_right) {
+                } else if (checkedId == R.id.rb_right) {
                     mSwipeBackDirection = SwipeBackDirection.LEFT;
-                } else if (checkedId == R.id.cb_top) {
+                } else if (checkedId == R.id.rb_top) {
                     mSwipeBackDirection = SwipeBackDirection.BOTTOM;
-                } else if (checkedId == R.id.cb_bottom) {
+                } else if (checkedId == R.id.rb_bottom) {
                     mSwipeBackDirection = SwipeBackDirection.TOP;
                 } else {
                     mSwipeBackDirection = SwipeBackDirection.NONE;
                 }
             }
         });
-        rg_direction.check(R.id.cb_left);
+        rg_direction.check(R.id.rb_left);
 
         SwitchCompat sw_only_edge = findViewById(R.id.sw_only_edge);
         sw_only_edge.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -135,8 +133,9 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
         vp.setAdapter(new ViewPagerAdapter());
     }
 
+    @NonNull
     @Override
-    public int swipeBackDirection() {
+    public SwipeBackDirection swipeBackDirection() {
         return mSwipeBackDirection;
     }
 

@@ -1,18 +1,66 @@
 package per.goweii.swipeback.utils;
 
+import android.graphics.Rect;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.core.view.ScrollingView;
 
-/**
- * @author CuiZhen
- * @date 2019/6/6
- * QQ: 302833254
- * E-mail: goweii@163.com
- * GitHub: https://github.com/goweii
- */
 public class ScrollCompat {
+    public static final int SCROLL_DIRECTION_UP = 1;
+    public static final int SCROLL_DIRECTION_DOWN = 2;
+    public static final int SCROLL_DIRECTION_LEFT = 3;
+    public static final int SCROLL_DIRECTION_RIGHT = 4;
+
+    public static boolean hasViewCanScrollUp(@NonNull View view, float x, float y) {
+        return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_UP);
+    }
+
+    public static boolean hasViewCanScrollDown(@NonNull View view, float x, float y) {
+        return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_DOWN);
+    }
+
+    public static boolean hasViewCanScrollLeft(@NonNull View view, float x, float y) {
+        return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_LEFT);
+    }
+
+    public static boolean hasViewCanScrollRight(@NonNull View view, float x, float y) {
+        return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_RIGHT);
+    }
+
+    public static boolean hasViewCanScrollDirection(@NonNull View view, float x, float y, int direction) {
+        if (!isPointInView(view, x, y)) {
+            return false;
+        }
+        if (ScrollCompat.canScrollDirection(view, direction)) {
+            return true;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) view;
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
+                View child = viewGroup.getChildAt(i);
+                if (hasViewCanScrollDirection(child, x, y, direction)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static boolean canScrollDirection(@NonNull View view, int direction) {
+        switch (direction) {
+            case SCROLL_DIRECTION_UP:
+                return canScrollUp(view);
+            case SCROLL_DIRECTION_DOWN:
+                return canScrollDown(view);
+            case SCROLL_DIRECTION_LEFT:
+                return canScrollLeft(view);
+            case SCROLL_DIRECTION_RIGHT:
+                return canScrollRight(view);
+        }
+        return false;
+    }
 
     public static boolean canScrollUp(@NonNull View view) {
         return ScrollCompat.canScrollVertically(view, -1);
@@ -30,7 +78,7 @@ public class ScrollCompat {
         return ScrollCompat.canScrollHorizontally(view, 1);
     }
 
-    public static boolean canScrollHorizontally(@NonNull View v, int direction) {
+    private static boolean canScrollHorizontally(@NonNull View v, int direction) {
         if (v instanceof ScrollingView) {
             return canScrollingViewScrollHorizontally((ScrollingView) v, direction);
         } else {
@@ -38,7 +86,7 @@ public class ScrollCompat {
         }
     }
 
-    public static boolean canScrollVertically(@NonNull View v, int direction) {
+    private static boolean canScrollVertically(@NonNull View v, int direction) {
         if (v instanceof ScrollingView) {
             return canScrollingViewScrollVertically((ScrollingView) v, direction);
         } else {
@@ -66,5 +114,11 @@ public class ScrollCompat {
         } else {
             return offset < range - 1;
         }
+    }
+
+    public static boolean isPointInView(View view, float x, float y) {
+        Rect localRect = new Rect();
+        view.getGlobalVisibleRect(localRect);
+        return localRect.contains((int) x, (int) y);
     }
 }

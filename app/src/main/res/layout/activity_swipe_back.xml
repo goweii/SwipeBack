@@ -73,25 +73,25 @@
             android:orientation="horizontal">
 
             <RadioButton
-                android:id="@+id/cb_left"
+                android:id="@+id/rb_left"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="右滑" />
 
             <RadioButton
-                android:id="@+id/cb_right"
+                android:id="@+id/rb_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="左滑" />
 
             <RadioButton
-                android:id="@+id/cb_top"
+                android:id="@+id/rb_top"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="下滑" />
 
             <RadioButton
-                android:id="@+id/cb_bottom"
+                android:id="@+id/rb_bottom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="上滑" />

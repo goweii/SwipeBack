@@ -1,21 +1,14 @@
 package per.goweii.android.swipeback;
 
-import android.content.Intent;
-import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import android.view.View;
+import androidx.annotation.NonNull;
 
-public class MainActivity extends BaseSwipeBackActivity {
+import per.goweii.swipeback.SwipeBackAble;
+import per.goweii.swipeback.SwipeBackDirection;
 
+public class MainActivity extends BaseSwipeBackActivity implements SwipeBackAble {
+    @NonNull
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public SwipeBackDirection swipeBackDirection() {
+        return SwipeBackDirection.NONE;
     }
-
-    public void startNormalActivity(View view) {
-        startActivity(new Intent(this, SwipeBackNormalActivity.class));
-        overridePendingTransition(R.anim.swipeback_activity_open_right_in,
-                R.anim.swipeback_activity_open_left_out);
-    }
-
 }

@@ -10,6 +10,7 @@ import android.view.Window;
 import android.widget.FrameLayout;
 
 import androidx.annotation.ColorInt;
+import androidx.annotation.FloatRange;
 import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -64,9 +65,8 @@ public class SwipeBackNode {
         mTransformer = getActivitySwipeBackTransformer();
     }
 
-    @SwipeBackDirection
-    private int getActivitySwipeBackDirection() {
-        final int swipeBackDirection;
+    private SwipeBackDirection getActivitySwipeBackDirection() {
+        final SwipeBackDirection swipeBackDirection;
         if (mActivity instanceof SwipeBackAble) {
             SwipeBackAble swipeBackable = (SwipeBackAble) mActivity;
             swipeBackDirection = swipeBackable.swipeBackDirection();
@@ -161,13 +161,13 @@ public class SwipeBackNode {
 
     private class SwipeBackListener implements SwipeBackLayout.SwipeBackListener {
         @Override
-        public void onBeforeSwipe(float swipeFraction, int swipeDirection) {
+        public void onBeforeSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             configLayout();
             mTransformer = getActivitySwipeBackTransformer();
         }
 
         @Override
-        public void onStartSwipe(float swipeFraction, int swipeDirection) {
+        public void onStartSwipe(@FloatRange(from = 0F, to = 1F)float swipeFraction,  @NonNull SwipeBackDirection swipeDirection) {
             mPreviewView = findPreviewView();
             if (mLayout != null && mTransformer != null && swipeFraction == 0) {
                 mTransformer.initialize(mLayout, mPreviewView);
@@ -178,14 +178,14 @@ public class SwipeBackNode {
         }
 
         @Override
-        public void onSwiping(float swipeFraction, int swipeDirection) {
+        public void onSwiping(@FloatRange(from = 0F, to = 1F)float swipeFraction,  @NonNull SwipeBackDirection swipeDirection) {
             if (mLayout != null && mTransformer != null) {
                 mTransformer.transform(mLayout, mPreviewView, swipeFraction, swipeDirection);
             }
         }
 
         @Override
-        public void onEndSwipe(float swipeFraction, int swipeDirection) {
+        public void onEndSwipe(@FloatRange(from = 0F, to = 1F)float swipeFraction,  @NonNull SwipeBackDirection swipeDirection) {
             if (mLayout != null && mTransformer != null) {
                 mTransformer.restore(mLayout, mPreviewView);
             }

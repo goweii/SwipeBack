@@ -1,10 +1,11 @@
 package per.goweii.swipeback;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public interface SwipeBackAble {
-    @SwipeBackDirection
-    int swipeBackDirection();
+    @NonNull
+    SwipeBackDirection swipeBackDirection();
 
     @Nullable
     SwipeBackTransformer swipeBackTransformer();

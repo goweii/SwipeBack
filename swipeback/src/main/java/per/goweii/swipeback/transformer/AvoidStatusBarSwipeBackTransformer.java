@@ -49,7 +49,7 @@ public class AvoidStatusBarSwipeBackTransformer implements SwipeBackTransformer 
             @NonNull View currentView,
             @Nullable final View previousView,
             @FloatRange(from = 0.0, to = 1.0) final float fraction,
-            @SwipeBackDirection int swipeDirection
+            @NonNull SwipeBackDirection swipeDirection
     ) {
         mFraction = fraction;
         if (previousView == null) return;

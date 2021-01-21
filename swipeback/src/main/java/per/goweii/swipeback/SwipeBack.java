@@ -14,8 +14,8 @@ import androidx.core.graphics.ColorUtils;
 public final class SwipeBack {
     private static final SwipeBack sInstance = new SwipeBack();
 
-    @SwipeBackDirection
-    private int mSwipeBackDirection = SwipeBackDirection.NONE;
+    @NonNull
+    private SwipeBackDirection mSwipeBackDirection = SwipeBackDirection.NONE;
     @Nullable
     private SwipeBackTransformer mSwipeBackTransformer = null;
     private boolean mSwipeBackOnlyEdge = false;
@@ -40,12 +40,12 @@ public final class SwipeBack {
         mShadowSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12F, application.getResources().getDisplayMetrics());
     }
 
-    public void setSwipeBackDirection(@SwipeBackDirection int swipeBackDirection) {
+    public void setSwipeBackDirection(@NonNull SwipeBackDirection swipeBackDirection) {
         this.mSwipeBackDirection = swipeBackDirection;
     }
 
-    @SwipeBackDirection
-    public int getSwipeBackDirection() {
+    @NonNull
+    public SwipeBackDirection getSwipeBackDirection() {
         return mSwipeBackDirection;
     }
 
