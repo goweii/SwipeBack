@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -17,14 +16,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.Px;
 
-import java.util.Objects;
-
 public class SwipeBackNode {
     private final Activity mActivity;
     private final boolean mTranslucent;
     private SwipeBackLayout mLayout = null;
     private SwipeBackTransformer mTransformer = null;
-    private View mPreviewView = null;
+    private SwipeBackNode mPreviousNode = null;
 
     public SwipeBackNode(@NonNull Activity activity) {
         mActivity = activity;
@@ -150,13 +147,23 @@ public class SwipeBackNode {
     }
 
     @Nullable
-    private View findPreviewView() {
-        SwipeBackNode previousNode = SwipeBackManager.getInstance().findPreviousNode(this);
-        if (previousNode != null) {
-            FrameLayout decorView = (FrameLayout) previousNode.getActivity().getWindow().getDecorView();
-            return decorView.getChildAt(0);
-        }
-        return null;
+    private View getTransformerView() {
+        Window window = mActivity.getWindow();
+        if (window == null) return null;
+        FrameLayout decorView = (FrameLayout) window.getDecorView();
+        if (decorView.getChildCount() == 0) return null;
+        return decorView.getChildAt(0);
+    }
+
+    @Nullable
+    private View getPreviousView() {
+        if (mPreviousNode == null) return null;
+        return mPreviousNode.getTransformerView();
+    }
+
+    @Nullable
+    private SwipeBackNode findPreviousNode() {
+        return SwipeBackManager.getInstance().findPreviousNode(this);
     }
 
     @Override
@@ -181,10 +188,9 @@ public class SwipeBackNode {
 
         @Override
         public void onStartSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
-            mPreviewView = findPreviewView();
+            mPreviousNode = findPreviousNode();
             if (mLayout != null && mTransformer != null && swipeFraction == 0) {
-                Log.d("SwipeBack", "initialize: " + swipeFraction);
-                mTransformer.initialize(mLayout, mPreviewView);
+                mTransformer.initialize(mLayout, getPreviousView());
             }
             if (!mTranslucent) {
                 TranslucentCompat.convertActivityToTranslucent(mActivity);
@@ -194,17 +200,16 @@ public class SwipeBackNode {
         @Override
         public void onSwiping(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             if (mLayout != null && mTransformer != null) {
-                Log.d("SwipeBack", "transform: " + swipeFraction);
-                mTransformer.transform(mLayout, mPreviewView, swipeFraction, swipeDirection);
+                mTransformer.transform(mLayout, getPreviousView(), swipeFraction, swipeDirection);
             }
         }
 
         @Override
         public void onEndSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             if (mLayout != null && mTransformer != null) {
-                Log.d("SwipeBack", "restore: " + swipeFraction);
-                mTransformer.restore(mLayout, mPreviewView);
+                mTransformer.restore(mLayout, getPreviousView());
             }
+            mPreviousNode = null;
             if (swipeFraction != 1) {
                 if (!mTranslucent) {
                     TranslucentCompat.convertActivityFromTranslucent(mActivity);
