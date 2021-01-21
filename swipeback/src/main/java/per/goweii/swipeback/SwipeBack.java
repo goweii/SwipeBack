@@ -28,6 +28,8 @@ public final class SwipeBack {
     @IntRange(from = 0, to = 255)
     private int mMaskAlpha = 150;
 
+    private boolean mRootSwipeBackEnable = false;
+
     private SwipeBack() {
     }
 
@@ -38,6 +40,14 @@ public final class SwipeBack {
     public void init(@NonNull Application application) {
         SwipeBackManager.init(application);
         mShadowSize = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12F, application.getResources().getDisplayMetrics());
+    }
+
+    public void setRootSwipeBackEnable(boolean enable) {
+        this.mRootSwipeBackEnable = enable;
+    }
+
+    public boolean isRootSwipeBackEnable() {
+        return mRootSwipeBackEnable;
     }
 
     public void setSwipeBackDirection(@NonNull SwipeBackDirection swipeBackDirection) {

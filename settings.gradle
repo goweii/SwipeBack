@@ -1,1 +1,3 @@
-include ':app', ':swipeback'
+include ':app'
+include ':swipeback'
+include ':swipeback-transformer'

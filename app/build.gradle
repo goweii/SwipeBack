@@ -24,4 +24,5 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
     implementation 'com.github.goweii:ActionBarEx:3.2.4'
     implementation project(":swipeback")
+    implementation project(":swipeback-transformer")
 }
