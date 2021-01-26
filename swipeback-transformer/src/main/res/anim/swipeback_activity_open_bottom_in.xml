@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android"
     android:duration="@integer/swipeback_activity_duration"
+    android:fillAfter="false"
     android:interpolator="@android:anim/decelerate_interpolator"
     android:shareInterpolator="true">
     <translate

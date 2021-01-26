@@ -148,6 +148,7 @@ public class SwipeBackNode {
 
     @Nullable
     private View getTransformerView() {
+        if (mLayout != null) return mLayout;
         Window window = mActivity.getWindow();
         if (window == null) return null;
         FrameLayout decorView = (FrameLayout) window.getDecorView();
