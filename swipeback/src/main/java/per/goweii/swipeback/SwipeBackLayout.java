@@ -53,6 +53,7 @@ public class SwipeBackLayout extends FrameLayout {
         super(context);
         setWillNotDraw(false);
         mDragHelper = ViewDragHelper.create(this, 1f, new DragHelperCallback());
+        mDragHelper.setMinVelocity(mSwipeBackVelocity);
         setEdgeTrackingEnabledByDirection();
     }
 
@@ -151,6 +152,7 @@ public class SwipeBackLayout extends FrameLayout {
 
     public void setSwipeBackVelocity(@FloatRange(from = 0.0f) float swipeBackVelocity) {
         this.mSwipeBackVelocity = swipeBackVelocity;
+        mDragHelper.setMinVelocity(mSwipeBackVelocity);
     }
 
     public boolean isSwipeBackOnlyEdge() {
@@ -316,33 +318,30 @@ public class SwipeBackLayout extends FrameLayout {
 
     @Override
     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
-        if (!isSwipeBackEnable()) {
-            return super.drawChild(canvas, child, drawingTime);
-        }
         boolean ret = super.drawChild(canvas, child, drawingTime);
-        if (child == getChildAt(0)) {
-            drawShadow(canvas, child);
+        if (isSwipeBackEnable() && isShadowEnable()) {
+            if (child == getChildAt(0)) {
+                drawShadow(canvas, child);
+            }
         }
         return ret;
     }
 
     private void drawShadow(Canvas canvas, View child) {
-        if (isShadowEnable()) {
-            final Rect childRect = mShadowRect;
-            child.getHitRect(childRect);
-            final Drawable shadow = getNonNullShadowDrawable();
-            if (mSwipeBackDirection == RIGHT) {
-                shadow.setBounds(childRect.left - shadow.getIntrinsicWidth(), childRect.top, childRect.left, childRect.bottom);
-            } else if (mSwipeBackDirection == LEFT) {
-                shadow.setBounds(childRect.right, childRect.top, childRect.right + shadow.getIntrinsicWidth(), childRect.bottom);
-            } else if (mSwipeBackDirection == BOTTOM) {
-                shadow.setBounds(childRect.left, childRect.top - shadow.getIntrinsicHeight(), childRect.right, childRect.top);
-            } else if (mSwipeBackDirection == TOP) {
-                shadow.setBounds(childRect.left, childRect.bottom, childRect.right, childRect.bottom + shadow.getIntrinsicHeight());
-            }
-            //mShadowDrawable.setAlpha((int) ((1 - mFraction) * 255));
-            mShadowDrawable.draw(canvas);
+        final Rect childRect = mShadowRect;
+        child.getHitRect(childRect);
+        final Drawable shadow = getNonNullShadowDrawable();
+        if (mSwipeBackDirection == RIGHT) {
+            shadow.setBounds(childRect.left - shadow.getIntrinsicWidth(), childRect.top, childRect.left, childRect.bottom);
+        } else if (mSwipeBackDirection == LEFT) {
+            shadow.setBounds(childRect.right, childRect.top, childRect.right + shadow.getIntrinsicWidth(), childRect.bottom);
+        } else if (mSwipeBackDirection == BOTTOM) {
+            shadow.setBounds(childRect.left, childRect.top - shadow.getIntrinsicHeight(), childRect.right, childRect.top);
+        } else if (mSwipeBackDirection == TOP) {
+            shadow.setBounds(childRect.left, childRect.bottom, childRect.right, childRect.bottom + shadow.getIntrinsicHeight());
         }
+        //mShadowDrawable.setAlpha((int) ((1 - mFraction) * 255));
+        mShadowDrawable.draw(canvas);
     }
 
     @Override

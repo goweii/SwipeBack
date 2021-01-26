@@ -20,7 +20,6 @@ public final class SwipeBack {
     private SwipeBackTransformer mSwipeBackTransformer = null;
     private boolean mSwipeBackOnlyEdge = false;
     private boolean mSwipeBackForceEdge = true;
-    private boolean mShadowEnable = true;
     @ColorInt
     private int mShadowColor = ColorUtils.setAlphaComponent(Color.BLACK, 50);
     @Px
@@ -82,14 +81,6 @@ public final class SwipeBack {
 
     public boolean isSwipeBackOnlyEdge() {
         return mSwipeBackOnlyEdge;
-    }
-
-    public boolean ismShadowEnable() {
-        return mShadowEnable;
-    }
-
-    public void setShadowEnable(boolean mShadowEnable) {
-        this.mShadowEnable = mShadowEnable;
     }
 
     @ColorInt

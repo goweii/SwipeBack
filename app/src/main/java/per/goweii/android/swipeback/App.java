@@ -27,13 +27,9 @@ import per.goweii.swipeback.SwipeBack;
 
 public class App extends Application implements Application.ActivityLifecycleCallbacks {
 
-    protected static final int FLAG_CLEAR_TOP = 0;
-    protected static final int FLAG_CLEAR_OLD = 1;
-
     @SuppressLint("StaticFieldLeak")
     private static Application application = null;
-    private static List<Activity> activities = Collections.synchronizedList(new LinkedList<Activity>());
-    private static Map<Class<? extends Activity>, Integer> singleInstanceActivities = Collections.synchronizedMap(new HashMap<Class<? extends Activity>, Integer>());
+    private static final List<Activity> activities = Collections.synchronizedList(new LinkedList<Activity>());
 
     public static Application getApp() {
         if (application == null) {
@@ -45,10 +41,6 @@ public class App extends Application implements Application.ActivityLifecycleCal
 
     public static Context getAppContext() {
         return getApp().getApplicationContext();
-    }
-
-    public static void addSingleInstanceActivity(Class<? extends Activity> cls, @Flag int flag) {
-        singleInstanceActivities.put(cls, flag);
     }
 
     public static List<Activity> getActivities() {
@@ -242,13 +234,6 @@ public class App extends Application implements Application.ActivityLifecycleCal
         Process.killProcess(Process.myPid());
     }
 
-    public static void restart() {
-        finishActivityWithoutCount(1);
-        if (activities != null && !activities.isEmpty()) {
-            activities.get(0).recreate();
-        }
-    }
-
     public static void recreate() {
         if (activities != null && !activities.isEmpty()) {
             for (Activity activity : activities) {
@@ -257,41 +242,9 @@ public class App extends Application implements Application.ActivityLifecycleCal
         }
     }
 
-    public static void finishActivityWithoutCount(int count) {
-        if (activities == null || activities.isEmpty()) {
-            return;
-        }
-        if (count <= 0) {
-            finishAllActivity();
-            return;
-        }
-        for (int i = activities.size() - 1; i >= count; i--) {
-            finishActivity(activities.get(i));
-        }
-    }
-
-    public static void finishActivityWithout(Class<? extends Activity> cls) {
-        if (cls == null) {
-            finishAllActivity();
-            return;
-        }
-        if (activities == null || activities.isEmpty()) {
-            return;
-        }
-        for (int i = activities.size() - 1; i >= 0; i--) {
-            Activity activity = activities.get(i);
-            if (!cls.equals(activity.getClass())) {
-                finishActivity(activity);
-            }
-        }
-    }
-
-    public static void finishActivityWithout(Activity activity) {
-        if (activity == null) {
-            finishAllActivity();
-            return;
-        }
-        finishActivityWithout(activity.getClass());
+    @Override
+    protected void attachBaseContext(Context context) {
+        super.attachBaseContext(context);
     }
 
     @Override
@@ -303,97 +256,37 @@ public class App extends Application implements Application.ActivityLifecycleCal
     }
 
     @Override
-    protected void attachBaseContext(Context context) {
-        super.attachBaseContext(context);
-    }
-
-    @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        if (activity == null) {
-            return;
-        }
-        Class<? extends Activity> cls = activity.getClass();
-        if (!singleInstanceActivities.containsKey(cls)) {
-            activities.add(activity);
-            return;
-        }
-        int flag = singleInstanceActivities.get(cls);
-        switch (flag) {
-            default:
-                throw new UnsupportedOperationException("Flag not find");
-            case FLAG_CLEAR_TOP:
-                int oldPos = -1;
-                for (int i = 0; i < activities.size(); i++) {
-                    if (cls.equals(activities.get(i).getClass())) {
-                        oldPos = i;
-                    }
-                }
-                if (oldPos >= 0) {
-                    for (int i = activities.size() - 1; i >= oldPos; i--) {
-                        Activity top = activities.get(i);
-                        if (!top.isFinishing()) {
-                            top.finish();
-                        }
-                    }
-                }
-                break;
-            case FLAG_CLEAR_OLD:
-                for (int i = activities.size() - 1; i >= 0; i--) {
-                    Activity old = activities.get(i);
-                    if (cls.equals(old.getClass()) && !old.isFinishing()) {
-                        old.finish();
-                    }
-                }
-                break;
-        }
         activities.add(activity);
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
-
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-
     }
 
     @Override
     public void onActivityStopped(Activity activity) {
-
     }
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
     }
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        if (activity == null) {
-            return;
-        }
-        if (activities == null || activities.isEmpty()) {
-            return;
-        }
-        if (activities.contains(activity)) {
-            activities.remove(activity);
-        }
+        activities.remove(activity);
     }
 
     private void registerActivityListener() {
         registerActivityLifecycleCallbacks(this);
-    }
-
-    @IntDef({FLAG_CLEAR_TOP, FLAG_CLEAR_OLD})
-    @Retention(RetentionPolicy.SOURCE)
-    @interface Flag {
     }
 
 }
