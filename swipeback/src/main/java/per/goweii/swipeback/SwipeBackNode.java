@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Looper;
+import android.os.MessageQueue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -16,16 +18,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.Px;
 
+import per.goweii.swipeback.utils.ActivityTranslucentConverter;
+
 public class SwipeBackNode {
     private final Activity mActivity;
+    private final ActivityTranslucentConverter mTranslucentConverter;
     private final boolean mTranslucent;
+
+    private boolean mForeground = true;
+
     private SwipeBackLayout mLayout = null;
     private SwipeBackTransformer mTransformer = null;
     private SwipeBackNode mPreviousNode = null;
 
     public SwipeBackNode(@NonNull Activity activity) {
         mActivity = activity;
-        mTranslucent = TranslucentCompat.isActivityThemeTranslucent(activity);
+        mTranslucentConverter = new ActivityTranslucentConverter(activity);
+        mTranslucent = mTranslucentConverter.isTranslucent();
     }
 
     @NonNull
@@ -61,6 +70,42 @@ public class SwipeBackNode {
         mLayout = swipeBackLayout;
         configLayout();
         mTransformer = getActivitySwipeBackTransformer();
+    }
+
+    public boolean isForeground() {
+        return mForeground;
+    }
+
+    public void onForeground() {
+        mForeground = true;
+        if (SwipeBackManager.getInstance().isRootNode(this) && !isRootActivitySwipeBackEnable()) {
+            return;
+        }
+        Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+            @Override
+            public boolean queueIdle() {
+                if (!mTranslucent) {
+                    mTranslucentConverter.toTranslucent();
+                }
+                return false;
+            }
+        });
+    }
+
+    public void onBackground() {
+        mForeground = false;
+        if (SwipeBackManager.getInstance().isRootNode(this) && !isRootActivitySwipeBackEnable()) {
+            return;
+        }
+        Looper.myQueue().addIdleHandler(new MessageQueue.IdleHandler() {
+            @Override
+            public boolean queueIdle() {
+                if (!mTranslucent) {
+                    mTranslucentConverter.fromTranslucent();
+                }
+                return false;
+            }
+        });
     }
 
     private SwipeBackDirection getActivitySwipeBackDirection() {
@@ -129,7 +174,7 @@ public class SwipeBackNode {
 
     private void configLayout() {
         if (mLayout != null) {
-            if (isRootNode() && !isRootActivitySwipeBackEnable()) {
+            if (SwipeBackManager.getInstance().isRootNode(this) && !isRootActivitySwipeBackEnable()) {
                 mLayout.setSwipeBackDirection(SwipeBackDirection.NONE);
             } else {
                 mLayout.setSwipeBackDirection(getActivitySwipeBackDirection());
@@ -140,10 +185,6 @@ public class SwipeBackNode {
             mLayout.setShadowColor(getActivitySwipeBackShadowColor());
             mLayout.setShadowSize(getActivitySwipeBackShadowSize());
         }
-    }
-
-    private boolean isRootNode() {
-        return SwipeBackManager.getInstance().isRootNode(this);
     }
 
     @Nullable
@@ -190,30 +231,30 @@ public class SwipeBackNode {
         @Override
         public void onStartSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             mPreviousNode = findPreviousNode();
-            if (mLayout != null && mTransformer != null && swipeFraction == 0) {
-                mTransformer.initialize(mLayout, getPreviousView());
-            }
             if (!mTranslucent) {
-                TranslucentCompat.convertActivityToTranslucent(mActivity);
+                mTranslucentConverter.toTranslucent();
+            }
+            if (mLayout != null && mTransformer != null && swipeFraction == 0 && mTranslucentConverter.isTranslucent()) {
+                mTransformer.initialize(mLayout, getPreviousView());
             }
         }
 
         @Override
         public void onSwiping(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
-            if (mLayout != null && mTransformer != null) {
+            if (mLayout != null && mTransformer != null && mTranslucentConverter.isTranslucent()) {
                 mTransformer.transform(mLayout, getPreviousView(), swipeFraction, swipeDirection);
             }
         }
 
         @Override
         public void onEndSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
-            if (mLayout != null && mTransformer != null) {
+            if (mLayout != null && mTransformer != null && mTranslucentConverter.isTranslucent()) {
                 mTransformer.restore(mLayout, getPreviousView());
             }
             mPreviousNode = null;
             if (swipeFraction != 1) {
                 if (!mTranslucent) {
-                    TranslucentCompat.convertActivityFromTranslucent(mActivity);
+                    mTranslucentConverter.fromTranslucent();
                 }
             } else {
                 mActivity.finish();

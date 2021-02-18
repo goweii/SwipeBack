@@ -7,6 +7,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.w3c.dom.Node;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +52,12 @@ class SwipeBackManager {
         return mNodes.get(index - 1);
     }
 
+    @Nullable
+    public SwipeBackNode findFirstNode() {
+        if (mNodes.isEmpty()) return null;
+        return mNodes.get(mNodes.size() - 1);
+    }
+
     public SwipeBackNode findNode(@NonNull Activity activity) {
         for (int i = mNodes.size() - 1; i >= 0; i--) {
             SwipeBackNode node = mNodes.get(i);
@@ -63,12 +71,29 @@ class SwipeBackManager {
     private void addNode(@NonNull Activity activity) {
         SwipeBackNode node = new SwipeBackNode(activity);
         mNodes.add(node);
+        notifyForeground();
     }
 
     private void removeNode(@NonNull Activity activity) {
         SwipeBackNode node = findNode(activity);
         if (node != null) {
             mNodes.remove(node);
+            notifyForeground();
+        }
+    }
+
+    private void notifyForeground() {
+        for (int i = mNodes.size() - 1; i >= 0; i--) {
+            SwipeBackNode node = mNodes.get(i);
+            if (i == mNodes.size() - 1) {
+                if (!node.isForeground()) {
+                    node.onForeground();
+                }
+            } else {
+                if (node.isForeground()) {
+                    node.onBackground();
+                }
+            }
         }
     }
 
