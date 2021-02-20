@@ -53,10 +53,10 @@
                 android:text="收缩效果" />
 
             <RadioButton
-                android:id="@+id/rb_avoid_statusbar"
+                android:id="@+id/rb_nothing"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="空出状态栏" />
+                android:text="无" />
 
         </RadioGroup>
 
@@ -76,28 +76,28 @@
                 android:id="@+id/rb_left"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="右滑" />
+                android:text="左滑" />
 
             <RadioButton
                 android:id="@+id/rb_right"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="左滑" />
+                android:text="右滑" />
 
             <RadioButton
                 android:id="@+id/rb_top"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="下滑" />
+                android:text="上滑" />
 
             <RadioButton
                 android:id="@+id/rb_bottom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="上滑" />
+                android:text="下滑" />
 
             <RadioButton
-                android:id="@+id/cb_none"
+                android:id="@+id/rb_none"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="无" />

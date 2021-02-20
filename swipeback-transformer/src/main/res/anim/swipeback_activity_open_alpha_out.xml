@@ -3,4 +3,8 @@
     android:duration="@integer/swipeback_activity_duration"
     android:fillAfter="false"
     android:interpolator="@android:anim/decelerate_interpolator"
-    android:shareInterpolator="true" />
+    android:shareInterpolator="true">
+    <alpha
+        android:fromAlpha="1"
+        android:toAlpha="0.3" />
+</set>

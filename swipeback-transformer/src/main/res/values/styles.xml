@@ -1,6 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <style name="SwipeBackActivityAnimRightInAlphaOut" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/swipeback_activity_open_right_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/swipeback_activity_open_alpha_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/swipeback_activity_close_alpha_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/swipeback_activity_close_right_out</item>
+    </style>
+
+    <style name="SwipeBackActivityAnimLeftIAlphaOut" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/swipeback_activity_open_left_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/swipeback_activity_open_alpha_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/swipeback_activity_close_alpha_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/swipeback_activity_close_left_out</item>
+    </style>
+
+    <style name="SwipeBackActivityAnimBottomInAlphaOut" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/swipeback_activity_open_bottom_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/swipeback_activity_open_alpha_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/swipeback_activity_close_alpha_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/swipeback_activity_close_bottom_out</item>
+    </style>
+
+    <style name="SwipeBackActivityAnimTopInAlphaOut" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/swipeback_activity_open_top_in</item>
+        <item name="android:activityOpenExitAnimation">@anim/swipeback_activity_open_alpha_out</item>
+        <item name="android:activityCloseEnterAnimation">@anim/swipeback_activity_close_alpha_in</item>
+        <item name="android:activityCloseExitAnimation">@anim/swipeback_activity_close_top_out</item>
+    </style>
+
     <style name="SwipeBackActivityAnimRightInShrinkOut" parent="@android:style/Animation.Activity">
         <item name="android:activityOpenEnterAnimation">@anim/swipeback_activity_open_right_in</item>
         <item name="android:activityOpenExitAnimation">@anim/swipeback_activity_open_scale_out</item>

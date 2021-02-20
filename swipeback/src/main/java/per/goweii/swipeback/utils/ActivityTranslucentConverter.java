@@ -43,9 +43,7 @@ public class ActivityTranslucentConverter {
     }
 
     public void toTranslucent() {
-        if (mIsTranslucent) {
-            return;
-        }
+        if (mIsTranslucent) return;
         mToConverter.convert(new ActivityTranslucentConverter.TranslucentCallback() {
             @Override
             public void onTranslucentCallback(boolean translucent) {
@@ -55,9 +53,7 @@ public class ActivityTranslucentConverter {
     }
 
     public void fromTranslucent() {
-        if (!mIsTranslucent) {
-            return;
-        }
+        if (!mIsTranslucent) return;
         mFromConverter.convert();
         this.mIsTranslucent = false;
     }

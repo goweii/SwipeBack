@@ -84,29 +84,29 @@ public final class SwipeBack {
     }
 
     @ColorInt
-    public int getShadowColor() {
+    public int getSwipeBackShadowColor() {
         return mShadowColor;
     }
 
-    public void setShadowStartColor(@ColorInt int shadowColor) {
+    public void setSwipeBackShadowColor(@ColorInt int shadowColor) {
         this.mShadowColor = shadowColor;
     }
 
     @Px
-    public int getShadowSize() {
+    public int getSwipeBackShadowSize() {
         return mShadowSize;
     }
 
-    public void setShadowSize(@Px int shadowSize) {
+    public void setSwipeBackShadowSize(@Px int shadowSize) {
         this.mShadowSize = shadowSize;
     }
 
     @IntRange(from = 0, to = 255)
-    public int getMaskAlpha() {
+    public int getSwipeBackMaskAlpha() {
         return mMaskAlpha;
     }
 
-    public void setMaskAlpha(@IntRange(from = 0, to = 255) int maskAlpha) {
+    public void setSwipeBackMaskAlpha(@IntRange(from = 0, to = 255) int maskAlpha) {
         this.mMaskAlpha = maskAlpha;
     }
 }

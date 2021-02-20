@@ -1,6 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="per.goweii.swipeback" >
-
-    <application></application>
-
-</manifest>
+<manifest package="per.goweii.swipeback" />

@@ -1,6 +1,5 @@
 package per.goweii.android.swipeback;
 
-import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -18,18 +17,21 @@ import per.goweii.actionbarex.common.ActionBarCommon;
 import per.goweii.actionbarex.common.OnActionBarChildClickListener;
 import per.goweii.swipeback.SwipeBackDirection;
 import per.goweii.swipeback.SwipeBackTransformer;
-import per.goweii.swipeback.SwipeBackAble;
-import per.goweii.swipeback.transformer.AvoidStatusBarSwipeBackTransformer;
+import per.goweii.swipeback.SwipeBackAbility;
 import per.goweii.swipeback.transformer.ParallaxSwipeBackTransformer;
 import per.goweii.swipeback.transformer.ShrinkSwipeBackTransformer;
 
-public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBackAble {
+public class BaseSwipeBackActivity extends AppCompatActivity implements
+        SwipeBackAbility.Direction,
+        SwipeBackAbility.Transformer,
+        SwipeBackAbility.OnlyEdge,
+        SwipeBackAbility.ForceEdge {
 
     @NonNull
-    private SwipeBackDirection mSwipeBackDirection = SwipeBackDirection.LEFT;
-    private SwipeBackTransformer mSwipeBackTransformer = null;
-    private boolean mSwipeBackOnlyEdge = false;
-    private boolean mSwipeBackForceEdge = true;
+    protected SwipeBackDirection mSwipeBackDirection = SwipeBackDirection.RIGHT;
+    protected SwipeBackTransformer mSwipeBackTransformer = null;
+    protected boolean mSwipeBackOnlyEdge = false;
+    protected boolean mSwipeBackForceEdge = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,28 +48,12 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
         abc.setOnLeftTextClickListener(new OnActionBarChildClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(BaseSwipeBackActivity.this, SwipeBackNormalActivity.class));
-                if (mSwipeBackTransformer instanceof ShrinkSwipeBackTransformer) {
-                    overridePendingTransition(
-                            R.anim.swipeback_activity_open_right_in,
-                            R.anim.swipeback_activity_open_scale_out
-                    );
-                } else if (mSwipeBackTransformer instanceof ParallaxSwipeBackTransformer) {
-                    overridePendingTransition(
-                            R.anim.swipeback_activity_open_right_in,
-                            R.anim.swipeback_activity_open_left_out
-                    );
-                } else if (mSwipeBackTransformer instanceof AvoidStatusBarSwipeBackTransformer) {
-                    overridePendingTransition(
-                            R.anim.swipeback_activity_open_right_in,
-                            R.anim.swipeback_activity_open_scale_out
-                    );
-                } else {
-                    overridePendingTransition(
-                            R.anim.swipeback_activity_open_right_in,
-                            R.anim.swipeback_activity_open_left_out
-                    );
-                }
+                SwipeBackNormalActivity.start(BaseSwipeBackActivity.this,
+                        mSwipeBackDirection,
+                        mSwipeBackTransformer,
+                        mSwipeBackOnlyEdge,
+                        mSwipeBackForceEdge
+                );
             }
         });
 
@@ -79,33 +65,53 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
                     mSwipeBackTransformer = new ParallaxSwipeBackTransformer();
                 } else if (checkedId == R.id.rb_shrink) {
                     mSwipeBackTransformer = new ShrinkSwipeBackTransformer();
-                } else if (checkedId == R.id.rb_avoid_statusbar) {
-                    mSwipeBackTransformer = new AvoidStatusBarSwipeBackTransformer();
                 } else {
                     mSwipeBackTransformer = null;
                 }
             }
         });
-        rg_transformer.check(R.id.rb_parallax);
+        if (mSwipeBackTransformer instanceof ShrinkSwipeBackTransformer) {
+            rg_transformer.check(R.id.rb_shrink);
+        } else if (mSwipeBackTransformer instanceof ParallaxSwipeBackTransformer) {
+            rg_transformer.check(R.id.rb_parallax);
+        } else {
+            rg_transformer.check(R.id.rb_nothing);
+        }
 
         RadioGroup rg_direction = findViewById(R.id.rg_direction);
         rg_direction.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId == R.id.rb_left) {
-                    mSwipeBackDirection = SwipeBackDirection.RIGHT;
-                } else if (checkedId == R.id.rb_right) {
                     mSwipeBackDirection = SwipeBackDirection.LEFT;
+                } else if (checkedId == R.id.rb_right) {
+                    mSwipeBackDirection = SwipeBackDirection.RIGHT;
                 } else if (checkedId == R.id.rb_top) {
-                    mSwipeBackDirection = SwipeBackDirection.BOTTOM;
-                } else if (checkedId == R.id.rb_bottom) {
                     mSwipeBackDirection = SwipeBackDirection.TOP;
+                } else if (checkedId == R.id.rb_bottom) {
+                    mSwipeBackDirection = SwipeBackDirection.BOTTOM;
                 } else {
                     mSwipeBackDirection = SwipeBackDirection.NONE;
                 }
             }
         });
-        rg_direction.check(R.id.rb_left);
+        switch (mSwipeBackDirection) {
+            case NONE:
+                rg_direction.check(R.id.rb_none);
+                break;
+            case RIGHT:
+                rg_direction.check(R.id.rb_right);
+                break;
+            case BOTTOM:
+                rg_direction.check(R.id.rb_bottom);
+                break;
+            case LEFT:
+                rg_direction.check(R.id.rb_left);
+                break;
+            case TOP:
+                rg_direction.check(R.id.rb_top);
+                break;
+        }
 
         SwitchCompat sw_only_edge = findViewById(R.id.sw_only_edge);
         sw_only_edge.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -128,7 +134,6 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements SwipeBac
         RecyclerView rv = findViewById(R.id.rv);
         rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
         rv.setAdapter(new RecyclerViewAdapter());
-
         ViewPager vp = findViewById(R.id.vp);
         vp.setAdapter(new ViewPagerAdapter());
     }

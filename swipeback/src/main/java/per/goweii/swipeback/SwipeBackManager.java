@@ -71,28 +71,14 @@ class SwipeBackManager {
     private void addNode(@NonNull Activity activity) {
         SwipeBackNode node = new SwipeBackNode(activity);
         mNodes.add(node);
-        notifyForeground();
     }
 
     private void removeNode(@NonNull Activity activity) {
-        SwipeBackNode node = findNode(activity);
-        if (node != null) {
-            mNodes.remove(node);
-            notifyForeground();
-        }
-    }
-
-    private void notifyForeground() {
         for (int i = mNodes.size() - 1; i >= 0; i--) {
             SwipeBackNode node = mNodes.get(i);
-            if (i == mNodes.size() - 1) {
-                if (!node.isForeground()) {
-                    node.onForeground();
-                }
-            } else {
-                if (node.isForeground()) {
-                    node.onBackground();
-                }
+            if (node.getActivity() == activity) {
+                mNodes.remove(i);
+                break;
             }
         }
     }
