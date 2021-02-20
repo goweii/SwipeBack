@@ -122,12 +122,11 @@ class SwipeBackNode {
         @Override
         public void onStartSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             mPreviousNode = findPreviousNode();
-            if (!mThemeTranslucent) {
-                mTranslucentConverter.toTranslucent();
-            }
             if (mLayout != null && mTransformer != null && swipeFraction == 0 && mTranslucentConverter.isTranslucent()) {
                 mTransformer.initialize(mLayout, getPreviousView());
-                mTransformer.transform(mLayout, getPreviousView(), swipeFraction, swipeDirection);
+            }
+            if (!mThemeTranslucent) {
+                mTranslucentConverter.toTranslucent();
             }
         }
 
@@ -140,19 +139,21 @@ class SwipeBackNode {
 
         @Override
         public void onEndSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
-            if (mLayout != null && mTransformer != null && mTranslucentConverter.isTranslucent()) {
-                mTransformer.transform(mLayout, getPreviousView(), swipeFraction, swipeDirection);
-                mTransformer.restore(mLayout, getPreviousView());
-            }
-            mPreviousNode = null;
             if (swipeFraction != 1) {
                 if (!mThemeTranslucent) {
                     mTranslucentConverter.fromTranslucent();
                 }
+                if (mLayout != null && mTransformer != null && mTranslucentConverter.isTranslucent()) {
+                    mTransformer.restore(mLayout, getPreviousView());
+                }
             } else {
+                if (mLayout != null && mTransformer != null && mTranslucentConverter.isTranslucent()) {
+                    mTransformer.restore(mLayout, getPreviousView());
+                }
                 mActivity.finish();
                 mActivity.overridePendingTransition(0, 0);
             }
+            mPreviousNode = null;
         }
     }
 }
