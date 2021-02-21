@@ -122,7 +122,7 @@ class SwipeBackNode {
         @Override
         public void onStartSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             mPreviousNode = findPreviousNode();
-            if (mLayout != null && mTransformer != null && swipeFraction == 0 && mTranslucentConverter.isTranslucent()) {
+            if (mLayout != null && mTransformer != null && swipeFraction == 0) {
                 mTransformer.initialize(mLayout, getPreviousView());
             }
             if (!mThemeTranslucent) {
@@ -143,11 +143,11 @@ class SwipeBackNode {
                 if (!mThemeTranslucent) {
                     mTranslucentConverter.fromTranslucent();
                 }
-                if (mLayout != null && mTransformer != null && mTranslucentConverter.isTranslucent()) {
+                if (mLayout != null && mTransformer != null) {
                     mTransformer.restore(mLayout, getPreviousView());
                 }
             } else {
-                if (mLayout != null && mTransformer != null && mTranslucentConverter.isTranslucent()) {
+                if (mLayout != null && mTransformer != null) {
                     mTransformer.restore(mLayout, getPreviousView());
                 }
                 mActivity.finish();
