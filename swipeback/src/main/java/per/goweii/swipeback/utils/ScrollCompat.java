@@ -4,14 +4,17 @@ import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
 import androidx.core.view.ScrollingView;
 
 public class ScrollCompat {
     public static final int SCROLL_DIRECTION_UP = 1;
-    public static final int SCROLL_DIRECTION_DOWN = 2;
-    public static final int SCROLL_DIRECTION_LEFT = 3;
-    public static final int SCROLL_DIRECTION_RIGHT = 4;
+    public static final int SCROLL_DIRECTION_DOWN = 1 << 1;
+    public static final int SCROLL_DIRECTION_LEFT = 1 << 2;
+    public static final int SCROLL_DIRECTION_RIGHT = 1 << 3;
+
+    private static final Rect sTempRect = new Rect();
 
     public static boolean hasViewCanScrollUp(@NonNull View view, float x, float y) {
         return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_UP);
@@ -30,12 +33,8 @@ public class ScrollCompat {
     }
 
     public static boolean hasViewCanScrollDirection(@NonNull View view, float x, float y, int direction) {
-        if (!isPointInView(view, x, y)) {
-            return false;
-        }
-        if (ScrollCompat.canScrollDirection(view, direction)) {
-            return true;
-        }
+        if (!isPointInView(view, x, y)) return false;
+        if (ScrollCompat.canScrollDirection(view, direction)) return true;
         if (view instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) view;
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
@@ -49,17 +48,24 @@ public class ScrollCompat {
     }
 
     public static boolean canScrollDirection(@NonNull View view, int direction) {
-        switch (direction) {
-            case SCROLL_DIRECTION_UP:
-                return canScrollUp(view);
-            case SCROLL_DIRECTION_DOWN:
-                return canScrollDown(view);
-            case SCROLL_DIRECTION_LEFT:
-                return canScrollLeft(view);
-            case SCROLL_DIRECTION_RIGHT:
-                return canScrollRight(view);
+        return calcScrollDirection(view, direction) != 0;
+    }
+
+    public static int calcScrollDirection(@NonNull View view, int direction) {
+        int flag = 0;
+        if ((direction & SCROLL_DIRECTION_UP) == SCROLL_DIRECTION_UP) {
+            if (canScrollUp(view)) flag |= SCROLL_DIRECTION_UP;
         }
-        return false;
+        if ((direction & SCROLL_DIRECTION_DOWN) == SCROLL_DIRECTION_DOWN) {
+            if (canScrollDown(view)) flag |= SCROLL_DIRECTION_DOWN;
+        }
+        if ((direction & SCROLL_DIRECTION_LEFT) == SCROLL_DIRECTION_LEFT) {
+            if (canScrollLeft(view)) flag |= SCROLL_DIRECTION_LEFT;
+        }
+        if ((direction & SCROLL_DIRECTION_RIGHT) == SCROLL_DIRECTION_RIGHT) {
+            if (canScrollRight(view)) flag |= SCROLL_DIRECTION_RIGHT;
+        }
+        return flag;
     }
 
     public static boolean canScrollUp(@NonNull View view) {
@@ -117,8 +123,7 @@ public class ScrollCompat {
     }
 
     public static boolean isPointInView(View view, float x, float y) {
-        Rect localRect = new Rect();
-        view.getGlobalVisibleRect(localRect);
-        return localRect.contains((int) x, (int) y);
+        view.getGlobalVisibleRect(sTempRect);
+        return sTempRect.contains((int) x, (int) y);
     }
 }

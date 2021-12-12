@@ -22,7 +22,11 @@ import androidx.customview.widget.ViewDragHelper;
 
 import per.goweii.swipeback.utils.ScrollCompat;
 
-import static per.goweii.swipeback.SwipeBackDirection.*;
+import static per.goweii.swipeback.SwipeBackDirection.BOTTOM;
+import static per.goweii.swipeback.SwipeBackDirection.LEFT;
+import static per.goweii.swipeback.SwipeBackDirection.NONE;
+import static per.goweii.swipeback.SwipeBackDirection.RIGHT;
+import static per.goweii.swipeback.SwipeBackDirection.TOP;
 
 public class SwipeBackLayout extends FrameLayout {
     private final ViewDragHelper mDragHelper;
@@ -46,6 +50,9 @@ public class SwipeBackLayout extends FrameLayout {
     private boolean mSwipeBackOnlyEdge = false;
     private float mSwipeBackFactor = 0.5f;
     private float mSwipeBackVelocity = 2000f;
+
+    private boolean mShouldIntercept = false;
+    private boolean mCheckedIntercept = false;
 
     private SwipeBackListener mSwipeBackListener;
 
@@ -195,21 +202,16 @@ public class SwipeBackLayout extends FrameLayout {
         return false;
     }
 
-    private boolean mShouldIntercept = false;
-    private boolean mCheckedIntercept = false;
-
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        switch (ev.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                mCheckedIntercept = false;
-                mShouldIntercept = false;
-                beforeSwipe();
-                break;
-            default:
-                break;
+        if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            mCheckedIntercept = false;
+            mShouldIntercept = false;
+            beforeSwipe();
         }
-        if (!isSwipeBackEnable()) return super.dispatchTouchEvent(ev);
+        if (!isSwipeBackEnable()) {
+            return super.dispatchTouchEvent(ev);
+        }
         float x = ev.getRawX();
         float y = ev.getRawY();
         switch (ev.getActionMasked()) {
@@ -266,46 +268,61 @@ public class SwipeBackLayout extends FrameLayout {
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
         if (!isSwipeBackEnable()) return false;
-        switch (ev.getActionMasked()) {
-            case MotionEvent.ACTION_MOVE:
-                if (mCheckedIntercept) {
-                    if (mShouldIntercept) {
-                        return mDragHelper.shouldInterceptTouchEvent(ev);
-                    }
+        if (ev.getActionMasked() == MotionEvent.ACTION_MOVE) {
+            if (mCheckedIntercept) {
+                if (mShouldIntercept) {
+                    return mDragHelper.shouldInterceptTouchEvent(ev);
                 }
-                return false;
-            default:
-                return mDragHelper.shouldInterceptTouchEvent(ev);
+            }
+            return false;
         }
+        return mDragHelper.shouldInterceptTouchEvent(ev);
     }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if (!isSwipeBackEnable()) return false;
-        switch (ev.getActionMasked()) {
-            case MotionEvent.ACTION_MOVE:
-                if (mCheckedIntercept) {
-                    if (mShouldIntercept) {
-                        mDragHelper.processTouchEvent(ev);
-                        return true;
-                    }
+        if (ev.getActionMasked() == MotionEvent.ACTION_MOVE) {
+            if (mCheckedIntercept) {
+                if (mShouldIntercept) {
+                    mDragHelper.processTouchEvent(ev);
+                    return true;
                 }
-                return false;
-            default:
-                mDragHelper.processTouchEvent(ev);
-                return true;
+            }
+            return false;
         }
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        mDragHelper.processTouchEvent(ev);
+        return true;
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
+        View capturedView = mDragHelper.getCapturedView();
+        if (capturedView != null) {
+            mFraction = Math.max(0F, mFraction);
+            mFraction = Math.min(1F, mFraction);
+            int offsetLeft = 0, offsetTop = 0;
+            switch (mSwipeBackDirection) {
+                case RIGHT:
+                case LEFT:
+                    offsetLeft = (int) (mFraction * (getWidth() + mShadowSize));
+                    break;
+                case BOTTOM:
+                case TOP:
+                    offsetTop = (int) (mFraction * (getHeight() + mShadowSize));
+                    break;
+                case NONE:
+                    break;
+            }
+            if (offsetLeft != 0) {
+                capturedView.offsetLeftAndRight(offsetLeft);
+            }
+            if (offsetTop != 0) {
+                capturedView.offsetTopAndBottom(offsetTop);
+            }
+        }
     }
 
     @Override

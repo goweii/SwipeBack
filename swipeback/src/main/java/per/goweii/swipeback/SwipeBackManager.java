@@ -7,29 +7,28 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import org.w3c.dom.Node;
-
 import java.util.ArrayList;
 import java.util.List;
 
 class SwipeBackManager {
-    private static SwipeBackManager INSTANCE = null;
+    private static SwipeBackManager sInstance = null;
     private final List<SwipeBackNode> mNodes = new ArrayList<>();
 
-    private SwipeBackManager(Application application) {
+    private SwipeBackManager(@NonNull Application application) {
         application.registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks());
     }
 
+    @NonNull
     public static SwipeBackManager getInstance() {
-        if (INSTANCE == null) {
+        if (sInstance == null) {
             throw new RuntimeException("需要先在Application中调用SwipeBack.init()方法完成初始化");
         }
-        return INSTANCE;
+        return sInstance;
     }
 
-    public static void init(Application application) {
-        if (INSTANCE == null) {
-            INSTANCE = new SwipeBackManager(application);
+    public static void init(@NonNull Application application) {
+        if (sInstance == null) {
+            sInstance = new SwipeBackManager(application);
         }
     }
 
@@ -58,6 +57,7 @@ class SwipeBackManager {
         return mNodes.get(mNodes.size() - 1);
     }
 
+    @Nullable
     public SwipeBackNode findNode(@NonNull Activity activity) {
         for (int i = mNodes.size() - 1; i >= 0; i--) {
             SwipeBackNode node = mNodes.get(i);

@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
+import android.os.Handler;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.RadioGroup;
@@ -26,6 +27,8 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements
         SwipeBackAbility.Transformer,
         SwipeBackAbility.OnlyEdge,
         SwipeBackAbility.ForceEdge {
+
+    private final Handler mHandler = new Handler();
 
     @NonNull
     protected SwipeBackDirection mSwipeBackDirection = SwipeBackDirection.RIGHT;
@@ -131,8 +134,24 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements
         });
         sw_force_edge.setChecked(mSwipeBackForceEdge);
 
+
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                bindData();
+            }
+        }, 2000);
+    }
+
+    @Override
+    protected void onDestroy() {
+        mHandler.removeCallbacksAndMessages(null);
+        super.onDestroy();
+    }
+
+    private void bindData() {
         RecyclerView rv = findViewById(R.id.rv);
-        rv.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
+        rv.setLayoutManager(new LinearLayoutManager(BaseSwipeBackActivity.this, LinearLayoutManager.HORIZONTAL, false));
         rv.setAdapter(new RecyclerViewAdapter());
         ViewPager vp = findViewById(R.id.vp);
         vp.setAdapter(new ViewPagerAdapter());
