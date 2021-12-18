@@ -9,12 +9,9 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.FrameLayout;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.FloatRange;
-import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.Px;
 
 import per.goweii.swipeback.utils.ActivityTranslucentConverter;
 
@@ -26,7 +23,6 @@ class SwipeBackNode {
     private SwipeBackLayout mLayout = null;
 
     private SwipeBackTransformer mTransformer = null;
-    private SwipeBackNode mPreviousNode = null;
 
     SwipeBackNode(@NonNull Activity activity) {
         mActivity = activity;
@@ -50,7 +46,6 @@ class SwipeBackNode {
         TypedArray typedArray = mActivity.getTheme().obtainStyledAttributes(new int[]{android.R.attr.windowBackground});
         int background = typedArray.getResourceId(0, 0);
         typedArray.recycle();
-        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         decorView.setBackground(new ColorDrawable(Color.TRANSPARENT));
         decorChildView.setBackgroundResource(background);
         SwipeBackLayout swipeBackLayout = new SwipeBackLayout(mActivity);
@@ -90,11 +85,16 @@ class SwipeBackNode {
     }
 
     @Nullable
-    private View getPreviousView() {
-        if (mPreviousNode == null) return null;
-        Window window = mPreviousNode.mActivity.getWindow();
+    private FrameLayout getDecorView() {
+        Window window = mActivity.getWindow();
         if (window == null) return null;
-        FrameLayout decorView = (FrameLayout) window.getDecorView();
+        return (FrameLayout) window.getDecorView();
+    }
+
+    @Nullable
+    private View getDecorChild0() {
+        FrameLayout decorView = getDecorView();
+        if (decorView == null) return null;
         if (decorView.getChildCount() == 0) return null;
         return decorView.getChildAt(0);
     }
@@ -113,6 +113,8 @@ class SwipeBackNode {
     }
 
     private class SwipeBackListener implements SwipeBackLayout.SwipeBackListener {
+        private SwipeBackNode mPreviousNode = null;
+
         @Override
         public void onBeforeSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             configLayout();
@@ -126,24 +128,46 @@ class SwipeBackNode {
                 mTranslucentConverter.toTranslucent();
             }
             if (mLayout != null && mTransformer != null) {
-                if (swipeFraction == 0) {
-                    mTransformer.initialize(mLayout, getPreviousView());
+                View previousDecorView = null;
+                View previousDecorChild0 = null;
+                if (mPreviousNode != null) {
+                    previousDecorView = mPreviousNode.getDecorView();
+                    previousDecorChild0 = mPreviousNode.getDecorChild0();
                 }
-                mTransformer.transform(mLayout, getPreviousView(), swipeFraction, swipeDirection);
+                if (previousDecorView != null) {
+                    previousDecorView.setBackground(new ColorDrawable(Color.BLACK));
+                }
+                if (swipeFraction == 0) {
+                    mTransformer.initialize(mLayout, previousDecorChild0);
+                }
+                mTransformer.transform(mLayout, previousDecorChild0, swipeFraction, swipeDirection);
             }
         }
 
         @Override
         public void onSwiping(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             if (mLayout != null && mTransformer != null) {
-                mTransformer.transform(mLayout, getPreviousView(), swipeFraction, swipeDirection);
+                View previousDecorChild0 = null;
+                if (mPreviousNode != null) {
+                    previousDecorChild0 = mPreviousNode.getDecorChild0();
+                }
+                mTransformer.transform(mLayout, previousDecorChild0, swipeFraction, swipeDirection);
             }
         }
 
         @Override
         public void onEndSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
             if (mLayout != null && mTransformer != null) {
-                mTransformer.restore(mLayout, getPreviousView());
+                View previousDecorView = null;
+                View previousDecorChild0 = null;
+                if (mPreviousNode != null) {
+                    previousDecorView = mPreviousNode.getDecorView();
+                    previousDecorChild0 = mPreviousNode.getDecorChild0();
+                }
+                mTransformer.restore(mLayout, previousDecorChild0);
+                if (previousDecorView != null) {
+                    previousDecorView.setBackground(new ColorDrawable(Color.TRANSPARENT));
+                }
             }
             if (swipeFraction != 1) {
                 if (!mThemeTranslucent) {
