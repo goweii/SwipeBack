@@ -118,6 +118,13 @@
             android:layout_marginTop="20dp"
             android:text="强制边缘可滑动返回" />
 
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/sw_close_self_on_open_activity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="打开新页面时关闭当前页面" />
+
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView

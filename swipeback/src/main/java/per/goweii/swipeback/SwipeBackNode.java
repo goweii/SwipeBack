@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -13,6 +14,8 @@ import androidx.annotation.FloatRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Objects;
+
 import per.goweii.swipeback.utils.ActivityTranslucentConverter;
 
 class SwipeBackNode {
@@ -21,13 +24,29 @@ class SwipeBackNode {
     private final boolean mThemeTranslucent;
 
     private SwipeBackLayout mLayout = null;
-
     private SwipeBackTransformer mTransformer = null;
 
     SwipeBackNode(@NonNull Activity activity) {
         mActivity = activity;
         mTranslucentConverter = new ActivityTranslucentConverter(activity);
         mThemeTranslucent = mTranslucentConverter.isThemeTranslucent();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SwipeBackNode that = (SwipeBackNode) o;
+        return mActivity.equals(that.mActivity);
+    }
+
+    @Override
+    public int hashCode() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return Objects.hash(mActivity);
+        } else {
+            return mActivity.hashCode();
+        }
     }
 
     @NonNull
@@ -66,7 +85,7 @@ class SwipeBackNode {
 
     private void configLayout() {
         if (mLayout != null) {
-            if (SwipeBackManager.getInstance().isRootNode(this) && !SwipeBack.getInstance().isRootSwipeBackEnable()) {
+            if (mActivity.isTaskRoot() && !SwipeBack.getInstance().isRootSwipeBackEnable()) {
                 mLayout.setSwipeBackDirection(SwipeBackDirection.NONE);
             } else {
                 mLayout.setSwipeBackDirection(SwipeBackAbility.getSwipeBackDirectionForActivity(mActivity));
@@ -97,19 +116,6 @@ class SwipeBackNode {
         if (decorView == null) return null;
         if (decorView.getChildCount() == 0) return null;
         return decorView.getChildAt(0);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        SwipeBackNode that = (SwipeBackNode) o;
-        return mActivity == that.mActivity;
-    }
-
-    @Override
-    public int hashCode() {
-        return mActivity.hashCode();
     }
 
     private class SwipeBackListener implements SwipeBackLayout.SwipeBackListener {

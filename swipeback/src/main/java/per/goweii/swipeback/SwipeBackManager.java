@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,17 +31,6 @@ class SwipeBackManager {
         if (sInstance == null) {
             sInstance = new SwipeBackManager(application);
         }
-    }
-
-    public boolean isRootNode(@NonNull SwipeBackNode node) {
-        return mNodes.indexOf(node) == 0;
-    }
-
-    public boolean isRootNode(@NonNull Activity activity) {
-        if (mNodes.isEmpty()) return false;
-        SwipeBackNode node = mNodes.get(0);
-        if (node == null) return false;
-        return node.getActivity() == activity;
     }
 
     @Nullable
@@ -69,8 +59,23 @@ class SwipeBackManager {
     }
 
     private void addNode(@NonNull Activity activity) {
+        int index = -1;
+        for (int i = mNodes.size() - 1; i >= 0; i--) {
+            SwipeBackNode node = mNodes.get(i);
+            if (node.getActivity() == activity) {
+                return;
+            }            if (node.getActivity().getComponentName() == activity.getComponentName()) {
+                index = i;
+                break;
+            }
+        }
         SwipeBackNode node = new SwipeBackNode(activity);
-        mNodes.add(node);
+        if (index >= 0 && index < mNodes.size()) {
+            mNodes.remove(index);
+            mNodes.add(index, node);
+        } else {
+            mNodes.add(node);
+        }
     }
 
     private void removeNode(@NonNull Activity activity) {
@@ -115,7 +120,9 @@ class SwipeBackManager {
 
         @Override
         public void onActivityDestroyed(Activity activity) {
-            removeNode(activity);
+            if (!activity.isChangingConfigurations()) {
+                removeNode(activity);
+            }
         }
     }
 }

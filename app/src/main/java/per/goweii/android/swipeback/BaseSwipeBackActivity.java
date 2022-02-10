@@ -57,6 +57,10 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements
                         mSwipeBackOnlyEdge,
                         mSwipeBackForceEdge
                 );
+                SwitchCompat sw_close_self_on_open_activity = findViewById(R.id.sw_close_self_on_open_activity);
+                if (sw_close_self_on_open_activity.isChecked()) {
+                    finish();
+                }
             }
         });
 
