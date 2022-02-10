@@ -64,7 +64,8 @@ class SwipeBackManager {
             SwipeBackNode node = mNodes.get(i);
             if (node.getActivity() == activity) {
                 return;
-            }            if (node.getActivity().getComponentName() == activity.getComponentName()) {
+            }
+            if (node.getActivity().getComponentName() == activity.getComponentName()) {
                 index = i;
                 break;
             }
