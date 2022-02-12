@@ -13,16 +13,12 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 @SuppressWarnings({"rawtypes", "JavaReflectionMemberAccess", "DiscouragedPrivateApi"})
-public class ActivityTranslucentConverter {
+public class TranslucentConverter {
     private final Activity mActivity;
-    private final ToConverter mToConverter;
-    private final FromConverter mFromConverter;
 
     private boolean mIsTranslucent;
 
-    public ActivityTranslucentConverter(@NonNull Activity activity) {
-        mToConverter = new ToConverter();
-        mFromConverter = new FromConverter();
+    public TranslucentConverter(@NonNull Activity activity) {
         this.mActivity = activity;
         this.mIsTranslucent = isThemeTranslucent();
     }
@@ -44,7 +40,7 @@ public class ActivityTranslucentConverter {
 
     public void toTranslucent() {
         if (mIsTranslucent) return;
-        mToConverter.convert(new ActivityTranslucentConverter.TranslucentCallback() {
+        ToConverter.convert(mActivity, new TranslucentConverter.TranslucentCallback() {
             @Override
             public void onTranslucentCallback(boolean translucent) {
                 mIsTranslucent = translucent;
@@ -54,38 +50,38 @@ public class ActivityTranslucentConverter {
 
     public void fromTranslucent() {
         if (!mIsTranslucent) return;
-        mFromConverter.convert();
+        FromConverter.convert(mActivity);
         this.mIsTranslucent = false;
     }
 
-    private class FromConverter {
-        private boolean mInitialedConvertFromTranslucent = false;
-        private Method mMethodConvertFromTranslucent = null;
+    private static class FromConverter {
+        private static boolean mInitialedConvertFromTranslucent = false;
+        private static Method mMethodConvertFromTranslucent = null;
 
-        private void convert() {
+        private static void convert(@NonNull Activity activity) {
+            if (mInitialedConvertFromTranslucent && mMethodConvertFromTranslucent == null) {
+                return;
+            }
             try {
                 if (mMethodConvertFromTranslucent == null) {
-                    if (mInitialedConvertFromTranslucent) {
-                        return;
-                    }
                     mInitialedConvertFromTranslucent = true;
                     Method method = Activity.class.getDeclaredMethod("convertFromTranslucent");
                     method.setAccessible(true);
                     mMethodConvertFromTranslucent = method;
                 }
-                mMethodConvertFromTranslucent.invoke(mActivity);
+                mMethodConvertFromTranslucent.invoke(activity);
             } catch (Throwable ignored) {
             }
         }
     }
 
-    private class ToConverter {
-        private boolean mInitialedConvertToTranslucent = false;
-        private Class mTranslucentConversionListenerClass = null;
-        private Method mMethodConvertToTranslucent = null;
-        private Method mMethodGetActivityOptions = null;
+    private static class ToConverter {
+        private static boolean mInitialedConvertToTranslucent = false;
+        private static Class mTranslucentConversionListenerClass = null;
+        private static Method mMethodConvertToTranslucent = null;
+        private static Method mMethodGetActivityOptions = null;
 
-        private void convert(final TranslucentCallback callback) {
+        private static void convert(@NonNull Activity activity, final TranslucentCallback callback) {
             if (mInitialedConvertToTranslucent && mMethodConvertToTranslucent == null) {
                 if (callback != null) {
                     callback.onTranslucentCallback(false);
@@ -95,9 +91,9 @@ public class ActivityTranslucentConverter {
             try {
                 Object translucentConversionListener = getTranslucentConversionListener(callback);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    convertActivityToTranslucentAboveL(translucentConversionListener);
+                    convertActivityToTranslucentAboveL(activity, translucentConversionListener);
                 } else {
-                    convertActivityToTranslucentBelowL(translucentConversionListener);
+                    convertActivityToTranslucentBelowL(activity, translucentConversionListener);
                 }
                 if (translucentConversionListener == null) {
                     if (callback != null) {
@@ -111,9 +107,7 @@ public class ActivityTranslucentConverter {
             }
         }
 
-        private Object getTranslucentConversionListener(
-                @Nullable final TranslucentCallback callback
-        ) throws Throwable {
+        private static Object getTranslucentConversionListener(@Nullable final TranslucentCallback callback) throws Throwable {
             if (mTranslucentConversionListenerClass == null) {
                 Class[] clazzArray = Activity.class.getDeclaredClasses();
                 for (Class clazz : clazzArray) {
@@ -122,40 +116,39 @@ public class ActivityTranslucentConverter {
                     }
                 }
             }
-            if (mTranslucentConversionListenerClass != null) {
-                InvocationHandler invocationHandler = new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        boolean translucent = false;
-                        if (args != null && args.length == 1) {
-                            translucent = (Boolean) args[0];
-                        }
-                        if (callback != null) {
-                            callback.onTranslucentCallback(translucent);
-                        }
-                        return null;
-                    }
-                };
-                return Proxy.newProxyInstance(mTranslucentConversionListenerClass.getClassLoader(), new Class[]{mTranslucentConversionListenerClass}, invocationHandler);
+            if (mTranslucentConversionListenerClass == null) {
+                return null;
             }
-            return null;
+            return Proxy.newProxyInstance(
+                    mTranslucentConversionListenerClass.getClassLoader(),
+                    new Class[]{mTranslucentConversionListenerClass},
+                    new InvocationHandler() {
+                        @SuppressWarnings("SuspiciousInvocationHandlerImplementation")
+                        @Override
+                        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                            boolean translucent = false;
+                            if (args != null && args.length == 1) {
+                                translucent = (Boolean) args[0];
+                            }
+                            if (callback != null) {
+                                callback.onTranslucentCallback(translucent);
+                            }
+                            return null;
+                        }
+                    });
         }
 
-        private void convertActivityToTranslucentBelowL(
-                @Nullable Object translucentConversionListener
-        ) throws Throwable {
+        private static void convertActivityToTranslucentBelowL(@NonNull Activity activity, @Nullable Object translucentConversionListener) throws Throwable {
             if (mMethodConvertToTranslucent == null) {
                 mInitialedConvertToTranslucent = true;
                 Method method = Activity.class.getDeclaredMethod("convertToTranslucent", mTranslucentConversionListenerClass);
                 method.setAccessible(true);
                 mMethodConvertToTranslucent = method;
             }
-            mMethodConvertToTranslucent.invoke(mActivity, translucentConversionListener);
+            mMethodConvertToTranslucent.invoke(activity, translucentConversionListener);
         }
 
-        private void convertActivityToTranslucentAboveL(
-                @Nullable Object translucentConversionListener
-        ) throws Throwable {
+        private static void convertActivityToTranslucentAboveL(@NonNull Activity activity, @Nullable Object translucentConversionListener) throws Throwable {
             if (mMethodConvertToTranslucent == null) {
                 mInitialedConvertToTranslucent = true;
                 Method getActivityOptions = Activity.class.getDeclaredMethod("getActivityOptions");
@@ -165,8 +158,8 @@ public class ActivityTranslucentConverter {
                 method.setAccessible(true);
                 mMethodConvertToTranslucent = method;
             }
-            Object options = mMethodGetActivityOptions.invoke(mActivity);
-            mMethodConvertToTranslucent.invoke(mActivity, translucentConversionListener, options);
+            Object options = mMethodGetActivityOptions.invoke(activity);
+            mMethodConvertToTranslucent.invoke(activity, translucentConversionListener, options);
         }
     }
 

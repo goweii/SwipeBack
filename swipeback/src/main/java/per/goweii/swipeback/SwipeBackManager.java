@@ -6,7 +6,6 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +64,7 @@ class SwipeBackManager {
             if (node.getActivity() == activity) {
                 return;
             }
+            // Activity重建了，更新当前节点
             if (node.getActivity().getComponentName() == activity.getComponentName()) {
                 index = i;
                 break;
@@ -99,6 +99,7 @@ class SwipeBackManager {
         public void onActivityStarted(Activity activity) {
             SwipeBackNode node = findNode(activity);
             if (node != null) {
+                // DecorView创建完成，执行注入
                 node.inject();
             }
         }
@@ -122,6 +123,7 @@ class SwipeBackManager {
 
         @Override
         public void onActivityDestroyed(Activity activity) {
+            // 如果是配置变更导致的Activity重建，则不应该移除，而应该在重建后更新
             if (!activity.isChangingConfigurations()) {
                 removeNode(activity);
             }

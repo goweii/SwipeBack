@@ -1,6 +1,6 @@
 # SwipeBack
 
-- 低代码侵入，不需要继承基类
+- 低耦合，低代码侵入，不需要继承基类
 - 支持4个方向滑动返回
 - 支持自定义滑动时底部Activity联动动效，有2个自带效果，分别为视差（类似微信）和收缩（类似头条）
 - 支持设置全局和仅边缘可滑动返回
@@ -10,12 +10,12 @@
 - 支持自定义底部Activity的遮罩颜色
 
 
-## 集成
+# 集成
 
-- ### 添加jitpack库
+- 添加jitpack仓库
 
 ```groovy
-// build.gradle(Project:)
+// Project:build.gradle
 allprojects {
     repositories {
         maven { url 'https://www.jitpack.io' }
@@ -23,24 +23,34 @@ allprojects {
 }
 ```
 
-- ### 添加依赖
+- 添加依赖
 
-  [点击查看最新版本号](https://github.com/goweii/SwipeBack/releases)
+[![](https://jitpack.io/v/goweii/SwipeBack.svg)](https://jitpack.io/#goweii/SwipeBack)
 
 ```groovy
-// build.gradle(Module:)
+// Module:build.gradle
 dependencies {
-    implementation 'com.github.goweii:SwipeBack:2.0.0'
+    implementation 'com.github.goweii:SwipeBack:2.0.5'
 }
 ```
 
-## 使用
+# 使用
+
+- 初始化
 
 ```java
-// 在Application#onCreate中初始化
 SwipeBack.getInstance().init(application);
-// 全局配置
-SwipeBack.getInstance().setXxx();
-// 单Activity配置
-// Activity implements SwipeBackAbility.Xxx
 ```
+
+- 全局配置
+
+```java
+SwipeBack.getInstance().setXxx();
+```
+
+- 单独配置
+
+```java
+Activity implements SwipeBackAbility.Xxx
+```
+

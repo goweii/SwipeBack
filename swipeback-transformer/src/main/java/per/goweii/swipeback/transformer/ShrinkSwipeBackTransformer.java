@@ -9,6 +9,9 @@ import androidx.annotation.Nullable;
 import per.goweii.swipeback.SwipeBackDirection;
 import per.goweii.swipeback.SwipeBackTransformer;
 
+/**
+ * 收缩联动效果，类似头条
+ */
 public class ShrinkSwipeBackTransformer implements SwipeBackTransformer {
     private final float mScale;
     private final float mAlpha;

@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -14,13 +13,16 @@ import androidx.annotation.FloatRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Objects;
+import per.goweii.swipeback.utils.TranslucentConverter;
 
-import per.goweii.swipeback.utils.ActivityTranslucentConverter;
-
+/**
+ * Activity栈的一个节点，由节点控制滑动的联动和状态变化
+ *
+ * 由{@link SwipeBackManager}创建和管理
+ */
 class SwipeBackNode {
     private final Activity mActivity;
-    private final ActivityTranslucentConverter mTranslucentConverter;
+    private final TranslucentConverter mTranslucentConverter;
     private final boolean mThemeTranslucent;
 
     private SwipeBackLayout mLayout = null;
@@ -28,7 +30,7 @@ class SwipeBackNode {
 
     SwipeBackNode(@NonNull Activity activity) {
         mActivity = activity;
-        mTranslucentConverter = new ActivityTranslucentConverter(activity);
+        mTranslucentConverter = new TranslucentConverter(activity);
         mThemeTranslucent = mTranslucentConverter.isThemeTranslucent();
     }
 
@@ -42,11 +44,7 @@ class SwipeBackNode {
 
     @Override
     public int hashCode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            return Objects.hash(mActivity);
-        } else {
-            return mActivity.hashCode();
-        }
+        return mActivity.hashCode();
     }
 
     @NonNull
@@ -54,6 +52,13 @@ class SwipeBackNode {
         return mActivity;
     }
 
+    /**
+     * 注入{@link SwipeBackLayout}到Activity
+     * 注入前布局树为：
+     * DecorView->DecorChildView->ContentContainer->ContentView
+     * 注入后布局树为：
+     * DecorView->SwipeBackLayout->DecorChildView->ContentContainer->ContentView
+     */
     void inject() {
         if (mLayout != null) return;
         Window window = mActivity.getWindow();
@@ -121,6 +126,10 @@ class SwipeBackNode {
         }
     }
 
+    /**
+     * 获取下层节点
+     * @return SwipeBackNode
+     */
     @Nullable
     private SwipeBackNode findPreviousNode() {
         return SwipeBackManager.getInstance().findPreviousNode(this);

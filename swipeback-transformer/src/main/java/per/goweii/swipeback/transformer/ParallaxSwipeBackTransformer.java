@@ -9,6 +9,9 @@ import androidx.annotation.Nullable;
 import per.goweii.swipeback.SwipeBackDirection;
 import per.goweii.swipeback.SwipeBackTransformer;
 
+/**
+ * 视差联动效果，类似微信
+ */
 public class ParallaxSwipeBackTransformer implements SwipeBackTransformer {
     private final float mPercent;
     private final float mAlpha;

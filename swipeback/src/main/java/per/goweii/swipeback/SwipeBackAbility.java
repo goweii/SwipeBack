@@ -8,7 +8,58 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.Px;
 
+/**
+ * 用于自定义单个Activity的滑动返回效果
+ * <p>
+ * 如果需要效果全局生效请使用{@link SwipeBack}配置
+ * <p>
+ * 例如：
+ * SwipeBackActivity extends AppCompatActivity implements SwipeBackAbility.Direction {
+ *     public SwipeBackDirection swipeBackDirection() {
+ *         return mSwipeBackDirection;
+ *     }
+ * }
+ */
 public class SwipeBackAbility {
+    /**
+     * 控制滑动返回的方向{@link SwipeBackDirection}
+     * 其中返回{@link SwipeBackDirection#NONE}为禁用滑动返回
+     */
+    public interface Direction {
+        @NonNull
+        SwipeBackDirection swipeBackDirection();
+    }
+
+    /**
+     * 自定义底部Activity联动效果
+     */
+    public interface Transformer {
+        @Nullable
+        SwipeBackTransformer swipeBackTransformer();
+    }
+
+    public interface OnlyEdge {
+        boolean swipeBackOnlyEdge();
+    }
+
+    public interface ForceEdge {
+        boolean swipeBackForceEdge();
+    }
+
+    public interface ShadowColor {
+        @ColorInt
+        int swipeBackShadowColor();
+    }
+
+    public interface ShadowSize {
+        @Px
+        int swipeBackShadowSize();
+    }
+
+    public interface MaskAlpha {
+        @IntRange(from = 0, to = 255)
+        int swipeBackMaskAlpha();
+    }
 
     @NonNull
     static SwipeBackDirection getSwipeBackDirectionForActivity(@NonNull Activity activity) {
@@ -18,11 +69,6 @@ public class SwipeBackAbility {
         } else {
             return SwipeBack.getInstance().getSwipeBackDirection();
         }
-    }
-
-    public interface Direction {
-        @NonNull
-        SwipeBackDirection swipeBackDirection();
     }
 
     @Nullable
@@ -35,11 +81,6 @@ public class SwipeBackAbility {
         }
     }
 
-    public interface Transformer {
-        @Nullable
-        SwipeBackTransformer swipeBackTransformer();
-    }
-
     static boolean isSwipeBackOnlyEdgeForActivity(@NonNull Activity activity) {
         if (activity instanceof OnlyEdge) {
             OnlyEdge ability = (OnlyEdge) activity;
@@ -49,10 +90,6 @@ public class SwipeBackAbility {
         }
     }
 
-    public interface OnlyEdge {
-        boolean swipeBackOnlyEdge();
-    }
-
     static boolean isSwipeBackForceEdgeForActivity(@NonNull Activity activity) {
         if (activity instanceof ForceEdge) {
             ForceEdge ability = (ForceEdge) activity;
@@ -60,10 +97,6 @@ public class SwipeBackAbility {
         } else {
             return SwipeBack.getInstance().isSwipeBackForceEdge();
         }
-    }
-
-    public interface ForceEdge {
-        boolean swipeBackForceEdge();
     }
 
     @ColorInt
@@ -76,11 +109,6 @@ public class SwipeBackAbility {
         }
     }
 
-    public interface ShadowColor {
-        @ColorInt
-        int swipeBackShadowColor();
-    }
-
     @Px
     static int getSwipeBackShadowSizeForActivity(@NonNull Activity activity) {
         if (activity instanceof ShadowSize) {
@@ -91,11 +119,6 @@ public class SwipeBackAbility {
         }
     }
 
-    public interface ShadowSize {
-        @Px
-        int swipeBackShadowSize();
-    }
-
     @IntRange(from = 0, to = 255)
     static int getSwipeBackMaskAlphaForActivity(@NonNull Activity activity) {
         if (activity instanceof MaskAlpha) {
@@ -104,10 +127,5 @@ public class SwipeBackAbility {
         } else {
             return SwipeBack.getInstance().getSwipeBackMaskAlpha();
         }
-    }
-
-    public interface MaskAlpha {
-        @IntRange(from = 0, to = 255)
-        int swipeBackMaskAlpha();
     }
 }
