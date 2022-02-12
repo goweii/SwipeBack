@@ -83,6 +83,29 @@ class SwipeBackNode {
         mTransformer = SwipeBackAbility.getSwipeBackTransformerForActivity(mActivity);
     }
 
+    /**
+     * 恢复状态，恢复下层Activity的状态
+     * 避免滑动一半时点击返回按钮导致下层Activity的状态未恢复问题
+     */
+    void restore() {
+        if (mLayout != null && mTransformer != null) {
+            View previousDecorView = null;
+            View previousDecorChild0 = null;
+            SwipeBackNode previousNode = findPreviousNode();
+            if (previousNode != null) {
+                previousDecorView = previousNode.getDecorView();
+                previousDecorChild0 = previousNode.getDecorChild0();
+            }
+            mTransformer.restore(mLayout, previousDecorChild0);
+            if (previousDecorView != null) {
+                previousDecorView.setBackground(new ColorDrawable(Color.TRANSPARENT));
+            }
+        }
+    }
+
+    /**
+     * 更新滑动返回的配置
+     */
     private void configLayout() {
         if (mLayout != null) {
             if (mActivity.isTaskRoot() && !SwipeBack.getInstance().isRootSwipeBackEnable()) {

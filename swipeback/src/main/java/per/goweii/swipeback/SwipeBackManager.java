@@ -113,10 +113,11 @@ class SwipeBackManager {
 
         @Override
         public void onActivityStopped(Activity activity) {
-        }
-
-        @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
+            SwipeBackNode node = findNode(activity);
+            if (node != null) {
+                // 完全不可见，恢复状态
+                node.restore();
+            }
         }
 
         @Override
@@ -124,6 +125,10 @@ class SwipeBackManager {
             if (!activity.isChangingConfigurations()) {
                 removeNode(activity);
             }
+        }
+
+        @Override
+        public void onActivitySaveInstanceState(Activity activity, Bundle bundle) {
         }
     }
 }
