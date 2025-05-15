@@ -1,11 +1,14 @@
 package per.goweii.swipeback.utils;
 
-import android.graphics.Rect;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.ValueCallback;
+import android.webkit.WebView;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.view.ScrollingView;
 
 public class ScrollCompat {
@@ -14,74 +17,84 @@ public class ScrollCompat {
     public static final int SCROLL_DIRECTION_LEFT = 1 << 2;
     public static final int SCROLL_DIRECTION_RIGHT = 1 << 3;
 
-    private static final Rect sTempRect = new Rect();
+    private static final ScrollDirectionResult sResult = new ScrollDirectionResult();
 
-    public static boolean hasViewCanScrollUp(@NonNull View view, float x, float y) {
-        return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_UP);
+    @NonNull
+    public static ScrollDirectionResult calcScrollDirection(@NonNull View view, float x, float y) {
+        sResult.reset();
+        calcScrollDirection(view, x, y, sResult);
+        return sResult;
     }
 
-    public static boolean hasViewCanScrollDown(@NonNull View view, float x, float y) {
-        return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_DOWN);
-    }
+    /**
+     * @noinspection deprecation
+     */
+    private static void calcScrollDirection(@NonNull final View view, final float x, final float y, @NonNull final ScrollDirectionResult result) {
+        if (!isPointInView(view, x, y)) return;
 
-    public static boolean hasViewCanScrollLeft(@NonNull View view, float x, float y) {
-        return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_LEFT);
-    }
-
-    public static boolean hasViewCanScrollRight(@NonNull View view, float x, float y) {
-        return hasViewCanScrollDirection(view, x, y, ScrollCompat.SCROLL_DIRECTION_RIGHT);
-    }
-
-    public static boolean hasViewCanScrollDirection(@NonNull View view, float x, float y, int direction) {
-        if (!isPointInView(view, x, y)) return false;
-        if (ScrollCompat.canScrollDirection(view, direction)) return true;
         if (view instanceof ViewGroup) {
             ViewGroup viewGroup = (ViewGroup) view;
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
                 View child = viewGroup.getChildAt(i);
-                if (hasViewCanScrollDirection(child, x, y, direction)) {
-                    return true;
-                }
+                float cx = x + (view.getScrollX() - child.getLeft());
+                float cy = y + (view.getScrollY() - child.getTop());
+                calcScrollDirection(child, cx, cy, result);
             }
         }
-        return false;
-    }
 
-    public static boolean canScrollDirection(@NonNull View view, int direction) {
-        return calcScrollDirection(view, direction) != 0;
-    }
-
-    public static int calcScrollDirection(@NonNull View view, int direction) {
-        int flag = 0;
-        if ((direction & SCROLL_DIRECTION_UP) == SCROLL_DIRECTION_UP) {
-            if (canScrollUp(view)) flag |= SCROLL_DIRECTION_UP;
+        if (canScrollVertically(view, -1)) {
+            result.direction |= SCROLL_DIRECTION_UP;
         }
-        if ((direction & SCROLL_DIRECTION_DOWN) == SCROLL_DIRECTION_DOWN) {
-            if (canScrollDown(view)) flag |= SCROLL_DIRECTION_DOWN;
+        if (canScrollVertically(view, 1)) {
+            result.direction |= SCROLL_DIRECTION_DOWN;
         }
-        if ((direction & SCROLL_DIRECTION_LEFT) == SCROLL_DIRECTION_LEFT) {
-            if (canScrollLeft(view)) flag |= SCROLL_DIRECTION_LEFT;
+        if (canScrollHorizontally(view, -1)) {
+            result.direction |= SCROLL_DIRECTION_LEFT;
         }
-        if ((direction & SCROLL_DIRECTION_RIGHT) == SCROLL_DIRECTION_RIGHT) {
-            if (canScrollRight(view)) flag |= SCROLL_DIRECTION_RIGHT;
+        if (canScrollHorizontally(view, 1)) {
+            result.direction |= SCROLL_DIRECTION_RIGHT;
         }
-        return flag;
-    }
-
-    public static boolean canScrollUp(@NonNull View view) {
-        return ScrollCompat.canScrollVertically(view, -1);
-    }
-
-    public static boolean canScrollDown(@NonNull View view) {
-        return ScrollCompat.canScrollVertically(view, 1);
-    }
-
-    public static boolean canScrollLeft(@NonNull View view) {
-        return ScrollCompat.canScrollHorizontally(view, -1);
-    }
-
-    public static boolean canScrollRight(@NonNull View view) {
-        return ScrollCompat.canScrollHorizontally(view, 1);
+        if (view instanceof WebView) {
+            WebView webView = (WebView) view;
+            if (webView.getSettings().getJavaScriptEnabled() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                result.asyncResult = true;
+                //noinspection ExtractMethodRecommender
+                final float wx = x / webView.getScale();
+                final float wy = y / webView.getScale();
+                final String script = "(function(x, y) {\n" +
+                        "    console.log(x)\n" +
+                        "    console.log(y)\n" +
+                        "    const elements = document.elementsFromPoint(x, y);\n" +
+                        "    console.log(elements);\n" +
+                        "    if (!elements || elements.length === 0) return 0;\n" +
+                        "    let scrollDirection = 0;\n" +
+                        "    elements.forEach(e => {" +
+                        "        const canScrollLeft = e.scrollWidth > e.clientWidth && e.scrollLeft > 0;\n" +
+                        "        const canScrollRight = e.scrollWidth > e.clientWidth && e.scrollLeft < (e.scrollWidth - e.clientWidth);\n" +
+                        "        const canScrollUp = e.scrollHeight > e.clientHeight && e.scrollTop > 0;\n" +
+                        "        const canScrollDown = e.scrollHeight > e.clientHeight && e.scrollTop < (e.scrollHeight - e.clientHeight);\n" +
+                        "        if (canScrollLeft) scrollDirection |= " + SCROLL_DIRECTION_LEFT + ";\n" +
+                        "        if (canScrollRight) scrollDirection |= " + SCROLL_DIRECTION_RIGHT + ";\n" +
+                        "        if (canScrollUp) scrollDirection |= " + SCROLL_DIRECTION_UP + ";\n" +
+                        "        if (canScrollDown) scrollDirection |= " + SCROLL_DIRECTION_DOWN + ";\n" +
+                        "    });\n" +
+                        "    console.log(scrollDirection)\n" +
+                        "    return scrollDirection;\n" +
+                        "})(" + wx + "," + wy + ");";
+                webView.evaluateJavascript(script, new ValueCallback<String>() {
+                    @Override
+                    public void onReceiveValue(String value) {
+                        try {
+                            sResult.direction |= Integer.parseInt(value);
+                            if (result.onAsyncResult != null) {
+                                result.onAsyncResult.run();
+                            }
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                });
+            }
+        }
     }
 
     private static boolean canScrollHorizontally(@NonNull View v, int direction) {
@@ -122,8 +135,47 @@ public class ScrollCompat {
         }
     }
 
-    public static boolean isPointInView(View view, float x, float y) {
-        view.getGlobalVisibleRect(sTempRect);
-        return sTempRect.contains((int) x, (int) y);
+    public static boolean isPointInView(@NonNull View view, float x, float y) {
+        return x >= 0 && x <= view.getWidth() && y >= 0 && y <= view.getHeight();
+    }
+
+    @IntDef(value = {
+            SCROLL_DIRECTION_UP,
+            SCROLL_DIRECTION_DOWN,
+            SCROLL_DIRECTION_LEFT,
+            SCROLL_DIRECTION_RIGHT
+    }, flag = true)
+    public @interface ScrollDirection {
+    }
+
+    public static class ScrollDirectionResult {
+        @ScrollDirection
+        private int direction;
+        private boolean asyncResult;
+        @Nullable
+        private Runnable onAsyncResult;
+
+        @ScrollDirection
+        public int getDirection() {
+            return direction;
+        }
+
+        public boolean hasAsyncResult() {
+            return asyncResult;
+        }
+
+        public void setOnAsyncResult(@Nullable Runnable onAsyncResult) {
+            this.onAsyncResult = onAsyncResult;
+        }
+
+        public boolean hasDirection(@ScrollDirection int direction) {
+            return (this.direction & direction) != 0;
+        }
+
+        public void reset() {
+            direction = 0;
+            asyncResult = false;
+            onAsyncResult = null;
+        }
     }
 }

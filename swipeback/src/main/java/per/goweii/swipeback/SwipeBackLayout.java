@@ -53,6 +53,7 @@ public class SwipeBackLayout extends FrameLayout {
 
     private boolean mShouldIntercept = false;
     private boolean mCheckedIntercept = false;
+    private ScrollCompat.ScrollDirectionResult mScrollDirectionResult;
 
     private SwipeBackListener mSwipeBackListener;
 
@@ -203,7 +204,7 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
+    public boolean dispatchTouchEvent(@NonNull MotionEvent ev) {
         if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
             mCheckedIntercept = false;
             mShouldIntercept = false;
@@ -218,6 +219,7 @@ public class SwipeBackLayout extends FrameLayout {
             case MotionEvent.ACTION_DOWN:
                 mDownX = x;
                 mDownY = y;
+                mScrollDirectionResult = ScrollCompat.calcScrollDirection(this, x, y);
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (!mCheckedIntercept) {
@@ -232,21 +234,29 @@ public class SwipeBackLayout extends FrameLayout {
                             if (Math.abs(dx) > Math.abs(dy)) {
                                 if (dx > 0) {
                                     if (mSwipeBackDirection == RIGHT) {
-                                        mShouldIntercept = !ScrollCompat.hasViewCanScrollLeft(this, mDownX, mDownY);
+                                        if (mScrollDirectionResult != null && !mScrollDirectionResult.hasDirection(ScrollCompat.SCROLL_DIRECTION_LEFT)) {
+                                            mShouldIntercept = true;
+                                        }
                                     }
                                 } else {
                                     if (mSwipeBackDirection == LEFT) {
-                                        mShouldIntercept = !ScrollCompat.hasViewCanScrollRight(this, mDownX, mDownY);
+                                        if (mScrollDirectionResult != null && !mScrollDirectionResult.hasDirection(ScrollCompat.SCROLL_DIRECTION_RIGHT)) {
+                                            mShouldIntercept = true;
+                                        }
                                     }
                                 }
                             } else {
                                 if (dy > 0) {
                                     if (mSwipeBackDirection == BOTTOM) {
-                                        mShouldIntercept = !ScrollCompat.hasViewCanScrollUp(this, mDownX, mDownY);
+                                        if (mScrollDirectionResult != null && !mScrollDirectionResult.hasDirection(ScrollCompat.SCROLL_DIRECTION_UP)) {
+                                            mShouldIntercept = true;
+                                        }
                                     }
                                 } else {
                                     if (mSwipeBackDirection == TOP) {
-                                        mShouldIntercept = !ScrollCompat.hasViewCanScrollDown(this, mDownX, mDownY);
+                                        if (mScrollDirectionResult != null && !mScrollDirectionResult.hasDirection(ScrollCompat.SCROLL_DIRECTION_DOWN)) {
+                                            mShouldIntercept = true;
+                                        }
                                     }
                                 }
                             }
@@ -258,6 +268,7 @@ public class SwipeBackLayout extends FrameLayout {
             case MotionEvent.ACTION_CANCEL:
                 mCheckedIntercept = false;
                 mShouldIntercept = false;
+                mScrollDirectionResult = null;
                 break;
             default:
                 break;

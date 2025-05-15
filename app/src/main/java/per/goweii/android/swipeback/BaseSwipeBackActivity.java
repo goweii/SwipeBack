@@ -11,6 +11,8 @@ import androidx.viewpager.widget.ViewPager;
 
 import android.os.Handler;
 import android.view.View;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
 import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 
@@ -138,6 +140,11 @@ public class BaseSwipeBackActivity extends AppCompatActivity implements
         });
         sw_force_edge.setChecked(mSwipeBackForceEdge);
 
+        WebView web_view = findViewById(R.id.web_view);
+        web_view.getSettings().setJavaScriptEnabled(true);
+        web_view.setWebChromeClient(new WebChromeClient());
+        web_view.setWebChromeClient(new WebChromeClient());
+        web_view.loadUrl("https://www.wanandroid.com/blog/show/3775");
 
         mHandler.postDelayed(new Runnable() {
             @Override
