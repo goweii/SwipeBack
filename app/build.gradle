@@ -1,11 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    namespace 'per.goweii.android.swipeback'
+
+    compileSdk 34
     defaultConfig {
         applicationId "per.goweii.android.swipeback"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdk 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
@@ -16,7 +18,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    namespace 'per.goweii.android.swipeback'
 }
 
 dependencies {

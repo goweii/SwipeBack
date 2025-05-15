@@ -3,12 +3,13 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    namespace 'per.goweii.swipeback'
+
+    compileSdk 34
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdk 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "proguard-rules.pro"
@@ -21,10 +22,9 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    namespace 'per.goweii.swipeback'
 }
 
 dependencies {
