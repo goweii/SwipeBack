@@ -32,3 +32,17 @@ dependencies {
     implementation project(":swipeback")
     implementation 'androidx.appcompat:appcompat:1.2.0'
 }
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'per.goweii.swipeback'
+            artifactId = 'swipeback-transformer'
+            version = '0.0.1'
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
+}
