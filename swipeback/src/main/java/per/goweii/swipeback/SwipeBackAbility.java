@@ -23,11 +23,11 @@ import androidx.annotation.Px;
 public class SwipeBackAbility {
     /**
      * 控制滑动返回的方向{@link SwipeBackDirection}
-     * 其中返回{@link SwipeBackDirection#NONE}为禁用滑动返回
+     * 其中返回0为禁用滑动返回
      */
     public interface Direction {
-        @NonNull
-        SwipeBackDirection swipeBackDirection();
+        @SwipeBackDirection
+        int swipeBackDirection();
     }
 
     /**
