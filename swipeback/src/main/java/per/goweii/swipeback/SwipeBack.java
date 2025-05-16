@@ -19,8 +19,8 @@ import androidx.core.graphics.ColorUtils;
 public final class SwipeBack {
     private static final SwipeBack sInstance = new SwipeBack();
 
-    @NonNull
-    private SwipeBackDirection mSwipeBackDirection = SwipeBackDirection.RIGHT;
+    @SwipeBackDirection
+    private int mSwipeBackDirection = SwipeBackDirection.RIGHT;
     @Nullable
     private SwipeBackTransformer mSwipeBackTransformer = null;
     private boolean mSwipeBackOnlyEdge = false;
@@ -74,7 +74,7 @@ public final class SwipeBack {
      *
      * @param swipeBackDirection 滑动方向或者禁用
      */
-    public void setSwipeBackDirection(@NonNull SwipeBackDirection swipeBackDirection) {
+    public void setSwipeBackDirection(@SwipeBackDirection int swipeBackDirection) {
         this.mSwipeBackDirection = swipeBackDirection;
     }
 
@@ -83,8 +83,8 @@ public final class SwipeBack {
      *
      * @return SwipeBackDirection
      */
-    @NonNull
-    public SwipeBackDirection getSwipeBackDirection() {
+    @SwipeBackDirection
+    public int getSwipeBackDirection() {
         return mSwipeBackDirection;
     }
 

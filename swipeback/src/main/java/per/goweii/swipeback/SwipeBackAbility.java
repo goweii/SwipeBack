@@ -61,8 +61,8 @@ public class SwipeBackAbility {
         int swipeBackMaskAlpha();
     }
 
-    @NonNull
-    static SwipeBackDirection getSwipeBackDirectionForActivity(@NonNull Activity activity) {
+    @SwipeBackDirection
+    static int getSwipeBackDirectionForActivity(@NonNull Activity activity) {
         if (activity instanceof Direction) {
             Direction ability = (Direction) activity;
             return ability.swipeBackDirection();

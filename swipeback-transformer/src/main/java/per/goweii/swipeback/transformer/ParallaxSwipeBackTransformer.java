@@ -38,29 +38,29 @@ public class ParallaxSwipeBackTransformer implements SwipeBackTransformer {
             @NonNull View currentView,
             @Nullable View previousView,
             @FloatRange(from = 0.0, to = 1.0) float fraction,
-            @NonNull SwipeBackDirection direction
+            @SwipeBackDirection int direction
     ) {
         if (previousView == null) return;
         switch (direction) {
-            case RIGHT: {
+            case SwipeBackDirection.RIGHT: {
                 float translation = previousView.getWidth() * mPercent * (1 - fraction);
                 previousView.setTranslationX(-translation);
                 previousView.setTranslationY(0);
                 break;
             }
-            case LEFT: {
+            case SwipeBackDirection.LEFT: {
                 float translation = (previousView.getWidth() * mPercent) * (1 - fraction);
                 previousView.setTranslationX(translation);
                 previousView.setTranslationY(0);
                 break;
             }
-            case BOTTOM: {
+            case SwipeBackDirection.BOTTOM: {
                 float translation = previousView.getWidth() * mPercent * (1 - fraction);
                 previousView.setTranslationY(-translation);
                 previousView.setTranslationX(0);
                 break;
             }
-            case TOP: {
+            case SwipeBackDirection.TOP: {
                 float translation = previousView.getWidth() * mPercent * (1 - fraction);
                 previousView.setTranslationY(translation);
                 previousView.setTranslationX(0);

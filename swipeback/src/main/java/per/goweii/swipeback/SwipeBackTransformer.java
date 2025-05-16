@@ -33,7 +33,7 @@ public interface SwipeBackTransformer {
             @NonNull View currentView,
             @Nullable View previousView,
             @FloatRange(from = 0.0, to = 1.0) float fraction,
-            @NonNull SwipeBackDirection swipeDirection
+            @SwipeBackDirection int swipeDirection
     );
 
     /**

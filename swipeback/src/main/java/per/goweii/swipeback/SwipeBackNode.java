@@ -114,7 +114,7 @@ class SwipeBackNode {
     private void configLayout() {
         if (mLayout != null) {
             if (mActivity.isTaskRoot() && !SwipeBack.getInstance().isRootSwipeBackEnable()) {
-                mLayout.setSwipeBackDirection(SwipeBackDirection.NONE);
+                mLayout.setSwipeBackDirection(0);
             } else {
                 mLayout.setSwipeBackDirection(SwipeBackAbility.getSwipeBackDirectionForActivity(mActivity));
             }
@@ -154,13 +154,13 @@ class SwipeBackNode {
         private SwipeBackNode mPreviousNode = null;
 
         @Override
-        public void onBeforeSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
+        public void onBeforeSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @SwipeBackDirection int swipeDirection) {
             configLayout();
             mTransformer = SwipeBackAbility.getSwipeBackTransformerForActivity(mActivity);
         }
 
         @Override
-        public void onStartSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
+        public void onStartSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @SwipeBackDirection int swipeDirection) {
             mPreviousNode = findPreviousNode();
             if (!mThemeTranslucent) {
                 mTranslucentConverter.toTranslucent();
@@ -183,7 +183,7 @@ class SwipeBackNode {
         }
 
         @Override
-        public void onSwiping(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
+        public void onSwiping(@FloatRange(from = 0F, to = 1F) float swipeFraction, @SwipeBackDirection int swipeDirection) {
             if (mLayout != null && mTransformer != null) {
                 View previousDecorChild0 = null;
                 if (mPreviousNode != null) {
@@ -194,7 +194,7 @@ class SwipeBackNode {
         }
 
         @Override
-        public void onEndSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @NonNull SwipeBackDirection swipeDirection) {
+        public void onEndSwipe(@FloatRange(from = 0F, to = 1F) float swipeFraction, @SwipeBackDirection int swipeDirection) {
             if (mLayout != null && mTransformer != null) {
                 View previousDecorView = null;
                 View previousDecorChild0 = null;
