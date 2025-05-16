@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace 'per.goweii.android.swipeback'
+    compileSdkVersion 30
+    buildToolsVersion "30.0.3"
 
-    compileSdk 34
     defaultConfig {
         applicationId "per.goweii.android.swipeback"
         minSdkVersion 19
-        targetSdk 34
+        targetSdkVersion 30
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
