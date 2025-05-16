@@ -24,7 +24,6 @@ import per.goweii.swipeback.utils.ScrollCompat;
 
 import static per.goweii.swipeback.SwipeBackDirection.BOTTOM;
 import static per.goweii.swipeback.SwipeBackDirection.LEFT;
-import static per.goweii.swipeback.SwipeBackDirection.NONE;
 import static per.goweii.swipeback.SwipeBackDirection.RIGHT;
 import static per.goweii.swipeback.SwipeBackDirection.TOP;
 
@@ -44,8 +43,8 @@ public class SwipeBackLayout extends FrameLayout {
     private int mShadowSize = 0;
     @IntRange(from = 0, to = 255)
     private int mMaskAlpha = 150;
-    @NonNull
-    private SwipeBackDirection mSwipeBackDirection = NONE;
+    @SwipeBackDirection
+    private int mSwipeBackDirection = 0;
     private boolean mSwipeBackForceEdge = true;
     private boolean mSwipeBackOnlyEdge = false;
     private float mSwipeBackFactor = 0.5f;
@@ -66,7 +65,7 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     public boolean isSwipeBackEnable() {
-        return mSwipeBackDirection != NONE;
+        return mSwipeBackDirection != 0;
     }
 
     public void setSwipeBackForceEdge(boolean enable) {
@@ -120,7 +119,7 @@ public class SwipeBackLayout extends FrameLayout {
         return mMaskAlpha;
     }
 
-    public void setSwipeBackDirection(@NonNull SwipeBackDirection direction) {
+    public void setSwipeBackDirection(@SwipeBackDirection int direction) {
         if (mSwipeBackDirection == direction) {
             return;
         }
@@ -130,27 +129,24 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     private void setEdgeTrackingEnabledByDirection() {
-        switch (mSwipeBackDirection) {
-            case BOTTOM:
-                mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_TOP);
-                break;
-            case LEFT:
-                mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_RIGHT);
-                break;
-            case RIGHT:
-                mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_LEFT);
-                break;
-            case TOP:
-                mDragHelper.setEdgeTrackingEnabled(ViewDragHelper.EDGE_BOTTOM);
-                break;
-            case NONE:
-                mDragHelper.setEdgeTrackingEnabled(0);
-                break;
+        int edgeFlags = 0;
+        if ((mSwipeBackDirection & BOTTOM) != 0) {
+            edgeFlags |= ViewDragHelper.EDGE_TOP;
         }
+        if ((mSwipeBackDirection & LEFT) != 0) {
+            edgeFlags |= ViewDragHelper.EDGE_RIGHT;
+        }
+        if ((mSwipeBackDirection & RIGHT) != 0) {
+            edgeFlags |= ViewDragHelper.EDGE_LEFT;
+        }
+        if ((mSwipeBackDirection & TOP) != 0) {
+            edgeFlags |= ViewDragHelper.EDGE_BOTTOM;
+        }
+        mDragHelper.setEdgeTrackingEnabled(edgeFlags);
     }
 
-    @NonNull
-    public SwipeBackDirection getSwipeBackDirection() {
+    @SwipeBackDirection
+    public int getSwipeBackDirection() {
         return mSwipeBackDirection;
     }
 
@@ -188,17 +184,17 @@ public class SwipeBackLayout extends FrameLayout {
     }
 
     public boolean isDirectionEdgeTouched() {
-        switch (mSwipeBackDirection) {
-            case BOTTOM:
-                return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP);
-            case LEFT:
-                return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT);
-            case RIGHT:
-                return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT);
-            case TOP:
-                return mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM);
-            case NONE:
-                return false;
+        if ((mSwipeBackDirection & BOTTOM) != 0 && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_TOP)) {
+            return true;
+        }
+        if ((mSwipeBackDirection & LEFT) != 0 && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_RIGHT)) {
+            return true;
+        }
+        if ((mSwipeBackDirection & RIGHT) != 0 && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_LEFT)) {
+            return true;
+        }
+        if ((mSwipeBackDirection & TOP) != 0 && mDragHelper.isEdgeTouched(ViewDragHelper.EDGE_BOTTOM)) {
+            return true;
         }
         return false;
     }
