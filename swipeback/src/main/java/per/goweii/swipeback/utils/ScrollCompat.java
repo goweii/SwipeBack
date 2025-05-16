@@ -62,24 +62,21 @@ public class ScrollCompat {
                 final float wx = x / webView.getScale();
                 final float wy = y / webView.getScale();
                 final String script = "(function(x, y) {\n" +
-                        "    console.log(x)\n" +
-                        "    console.log(y)\n" +
-                        "    const elements = document.elementsFromPoint(x, y);\n" +
-                        "    console.log(elements);\n" +
-                        "    if (!elements || elements.length === 0) return 0;\n" +
-                        "    let scrollDirection = 0;\n" +
-                        "    elements.forEach(e => {" +
-                        "        const canScrollLeft = e.scrollWidth > e.clientWidth && e.scrollLeft > 0;\n" +
-                        "        const canScrollRight = e.scrollWidth > e.clientWidth && e.scrollLeft < (e.scrollWidth - e.clientWidth);\n" +
-                        "        const canScrollUp = e.scrollHeight > e.clientHeight && e.scrollTop > 0;\n" +
-                        "        const canScrollDown = e.scrollHeight > e.clientHeight && e.scrollTop < (e.scrollHeight - e.clientHeight);\n" +
-                        "        if (canScrollLeft) scrollDirection |= " + SCROLL_DIRECTION_LEFT + ";\n" +
-                        "        if (canScrollRight) scrollDirection |= " + SCROLL_DIRECTION_RIGHT + ";\n" +
-                        "        if (canScrollUp) scrollDirection |= " + SCROLL_DIRECTION_UP + ";\n" +
-                        "        if (canScrollDown) scrollDirection |= " + SCROLL_DIRECTION_DOWN + ";\n" +
-                        "    });\n" +
-                        "    console.log(scrollDirection)\n" +
-                        "    return scrollDirection;\n" +
+                        "  const elements = document.elementsFromPoint(x, y);\n" +
+                        "  if (!elements || elements.length === 0) return 0;\n" +
+                        "  let scrollDirection = 0;\n" +
+                        "  elements.forEach(e => {" +
+                        "    const canScrollLeft = e.scrollWidth > e.clientWidth && e.scrollLeft > 0;\n" +
+                        "    const canScrollRight = e.scrollWidth > e.clientWidth && (e.scrollLeft + 1) < (e.scrollWidth - e.clientWidth);\n" +
+                        "    const canScrollUp = e.scrollHeight > e.clientHeight && e.scrollTop > 0;\n" +
+                        "    const canScrollDown = e.scrollHeight > e.clientHeight && (e.scrollTop + 1) < (e.scrollHeight - e.clientHeight);\n" +
+                        "    if (canScrollLeft) scrollDirection |= " + SCROLL_DIRECTION_LEFT + ";\n" +
+                        "    if (canScrollRight) scrollDirection |= " + SCROLL_DIRECTION_RIGHT + ";\n" +
+                        "    if (canScrollUp) scrollDirection |= " + SCROLL_DIRECTION_UP + ";\n" +
+                        "    if (canScrollDown) scrollDirection |= " + SCROLL_DIRECTION_DOWN + ";\n" +
+                        "  });\n" +
+                        "  console.log(scrollDirection)\n" +
+                        "  return scrollDirection;\n" +
                         "})(" + wx + "," + wy + ");";
                 webView.evaluateJavascript(script, new ValueCallback<String>() {
                     @Override
