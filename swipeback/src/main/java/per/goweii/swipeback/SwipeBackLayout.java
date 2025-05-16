@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -46,6 +45,7 @@ public class SwipeBackLayout extends FrameLayout {
     private float mSwipeBackVelocity = 2000f;
 
     private boolean mCheckedIntercept = false;
+    private boolean mShouldIntercept = false;
     private boolean mSwiping = false;
     @SwipeBackDirection
     private int mDirection = 0;
@@ -215,6 +215,7 @@ public class SwipeBackLayout extends FrameLayout {
         final int actionMasked = ev.getActionMasked();
         if (actionMasked == MotionEvent.ACTION_DOWN) {
             mCheckedIntercept = false;
+            mShouldIntercept = false;
             mDirection = 0;
             beforeSwipe();
         }
@@ -234,6 +235,7 @@ public class SwipeBackLayout extends FrameLayout {
                     int directionByTouchedEdge = getDirectionByTouchedEdge();
                     if (mSwipeBackForceEdge && directionByTouchedEdge != 0) {
                         mCheckedIntercept = true;
+                        mShouldIntercept = true;
                         mDirection = directionByTouchedEdge;
                     } else {
                         float dx = x - mDownX;
@@ -245,12 +247,14 @@ public class SwipeBackLayout extends FrameLayout {
                                     if (hasDirection(SwipeBackDirection.RIGHT)) {
                                         if (mScrollDirectionResult != null && !mScrollDirectionResult.hasDirection(ScrollCompat.SCROLL_DIRECTION_LEFT)) {
                                             mDirection = SwipeBackDirection.RIGHT;
+                                            mShouldIntercept = true;
                                         }
                                     }
                                 } else {
                                     if (hasDirection(SwipeBackDirection.LEFT)) {
                                         if (mScrollDirectionResult != null && !mScrollDirectionResult.hasDirection(ScrollCompat.SCROLL_DIRECTION_RIGHT)) {
                                             mDirection = SwipeBackDirection.LEFT;
+                                            mShouldIntercept = true;
                                         }
                                     }
                                 }
@@ -259,12 +263,14 @@ public class SwipeBackLayout extends FrameLayout {
                                     if (hasDirection(SwipeBackDirection.BOTTOM)) {
                                         if (mScrollDirectionResult != null && !mScrollDirectionResult.hasDirection(ScrollCompat.SCROLL_DIRECTION_UP)) {
                                             mDirection = SwipeBackDirection.BOTTOM;
+                                            mShouldIntercept = true;
                                         }
                                     }
                                 } else {
                                     if (hasDirection(SwipeBackDirection.TOP)) {
                                         if (mScrollDirectionResult != null && !mScrollDirectionResult.hasDirection(ScrollCompat.SCROLL_DIRECTION_DOWN)) {
                                             mDirection = SwipeBackDirection.TOP;
+                                            mShouldIntercept = true;
                                         }
                                     }
                                 }
@@ -273,16 +279,14 @@ public class SwipeBackLayout extends FrameLayout {
                     }
                 }
                 break;
-        }
-        final boolean result = super.dispatchTouchEvent(ev);
-        switch (actionMasked) {
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 mCheckedIntercept = false;
+                mShouldIntercept = false;
                 mScrollDirectionResult = null;
                 break;
         }
-        return result;
+        return super.dispatchTouchEvent(ev);
     }
 
     @Override
@@ -290,7 +294,7 @@ public class SwipeBackLayout extends FrameLayout {
         if (!isSwipeBackEnable()) return false;
         if (ev.getActionMasked() == MotionEvent.ACTION_MOVE) {
             if (mCheckedIntercept) {
-                if (mDirection != 0) {
+                if (mShouldIntercept) {
                     return mDragHelper.shouldInterceptTouchEvent(ev);
                 }
             }
@@ -305,7 +309,7 @@ public class SwipeBackLayout extends FrameLayout {
         if (!isSwipeBackEnable()) return false;
         if (ev.getActionMasked() == MotionEvent.ACTION_MOVE) {
             if (mCheckedIntercept) {
-                if (mDirection != 0) {
+                if (mShouldIntercept) {
                     mDragHelper.processTouchEvent(ev);
                     return true;
                 }
