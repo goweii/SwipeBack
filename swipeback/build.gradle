@@ -1,5 +1,6 @@
 plugins {
     id 'com.android.library'
+    id 'maven-publish'
 }
 
 android {
@@ -28,8 +29,25 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    publishing {
+        singleVariant("release")
+    }
 }
 
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.goweii'
+            artifactId = 'swipeback'
+            version = '3.1.0-alpha'
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
 }
