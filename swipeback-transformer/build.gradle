@@ -1,14 +1,17 @@
 plugins {
     id 'com.android.library'
+    id 'maven-publish'
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    compileSdkVersion 35
+    buildToolsVersion "35.0.0"
+
+    namespace "per.goweii.swipeback.transformer"
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 30
+        targetSdkVersion 35
         versionCode 1
         versionName "1.0"
 
@@ -26,9 +29,26 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    publishing {
+        singleVariant("release")
+    }
 }
 
 dependencies {
     implementation project(":swipeback")
     implementation 'androidx.appcompat:appcompat:1.2.0'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.goweii'
+            artifactId = 'swipeback-transformer'
+            version = '3.1.0-alpha'
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
 }

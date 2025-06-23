@@ -8,6 +8,7 @@ import android.text.TextUtils;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import per.goweii.swipeback.transformer.R;
 import per.goweii.swipeback.SwipeBackDirection;
 import per.goweii.swipeback.SwipeBackTransformer;
 import per.goweii.swipeback.transformer.ParallaxSwipeBackTransformer;
