@@ -39,6 +39,7 @@ public class TranslucentConverter {
     public void toTranslucent() {
         if (mIsTranslucent) return;
         ToConverter.convert(mActivity);
+        this.mIsTranslucent = true;
     }
 
     public void fromTranslucent() {
@@ -54,8 +55,12 @@ public class TranslucentConverter {
         private static void convert(@NonNull Activity activity) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 activity.setTranslucent(false);
-                int[] animations = getActivityCloseAnimation(activity);
-                activity.overridePendingTransition(animations[0], animations[1]);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    activity.clearOverrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE);
+                } else {
+                    int[] animations = getActivityCloseAnimation(activity);
+                    activity.overridePendingTransition(animations[0], animations[1]);
+                }
                 return;
             }
             if (mInitialedConvertFromTranslucent && mMethodConvertFromTranslucent == null) {
@@ -100,7 +105,11 @@ public class TranslucentConverter {
         private static void convert(@NonNull Activity activity) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 activity.setTranslucent(true);
-                activity.overridePendingTransition(0, 0);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    activity.overrideActivityTransition(Activity.OVERRIDE_TRANSITION_CLOSE, 0, 0);
+                } else {
+                    activity.overridePendingTransition(0, 0);
+                }
                 return;
             }
             if (mInitialedConvertToTranslucent && mMethodConvertToTranslucent == null) {

@@ -5,7 +5,7 @@ plugins {
 
 android {
     compileSdkVersion 35
-    buildToolsVersion "35.0.0"
+    buildToolsVersion "35.0.1"
 
     namespace "per.goweii.swipeback"
 
@@ -43,7 +43,7 @@ publishing {
         release(MavenPublication) {
             groupId = 'com.goweii'
             artifactId = 'swipeback'
-            version = '3.1.0-alpha'
+            version = '*'
 
             afterEvaluate {
                 from components.release

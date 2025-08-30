@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 35
-    buildToolsVersion "35.0.0"
+    buildToolsVersion "35.0.1"
 
     namespace "per.goweii.android.swipeback"
 
